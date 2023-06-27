@@ -34,7 +34,7 @@ foreach(file ${test_sources})
   #
   # Load the desired unit testing framework
   #
-  # Currently supported: GoogleTest (and GoogleMock), Catch2.
+  # Currently supported: Catch2.
 
   if(${CMAKE_PROJECT_NAME}_BUILD_EXECUTABLE)
     set(${CMAKE_PROJECT_NAME}_TEST_LIB ${CMAKE_PROJECT_NAME}_LIB)
@@ -42,27 +42,18 @@ foreach(file ${test_sources})
     set(${CMAKE_PROJECT_NAME}_TEST_LIB ${CMAKE_PROJECT_NAME})
   endif()
 
-  if(${CMAKE_PROJECT_NAME}_USE_GTEST)
-    find_package(GTest REQUIRED)
-
-    if(${CMAKE_PROJECT_NAME}_USE_GOOGLE_MOCK)
-      set(GOOGLE_MOCK_LIBRARIES GTest::gmock GTest::gmock_main)
-    endif()
-
-    target_link_libraries(
-      ${test_name}_Tests
-      PUBLIC
-        GTest::GTest
-        GTest::Main
-        ${GOOGLE_MOCK_LIBRARIES}
-        ${${CMAKE_PROJECT_NAME}_TEST_LIB}
+  if(${CMAKE_PROJECT_NAME}_USE_CATCH2)
+    FetchContent_Declare(
+      Catch2
+      GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+      GIT_TAG        v3.0.1 # or a later release
     )
-  elseif(${CMAKE_PROJECT_NAME}_USE_CATCH2)
-    find_package(Catch2 REQUIRED)
+
+    FetchContent_MakeAvailable(Catch2)
     target_link_libraries(
       ${test_name}_Tests
       PUBLIC
-        Catch2::Catch2
+      Catch2::Catch2WithMain
         ${${CMAKE_PROJECT_NAME}_TEST_LIB}
     )
   else()

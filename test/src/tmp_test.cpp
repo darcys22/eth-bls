@@ -1,15 +1,23 @@
-#include "project/tmp.hpp"
+#include "eth-bls/tmp.hpp"
 
-#include <gtest/gtest.h>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_all.hpp>
 
-TEST(TmpAddTest, CheckValues)
-{
-  ASSERT_EQ(tmp::add(1, 2), 3);
-  EXPECT_TRUE(true);
+unsigned int Factorial( unsigned int number ) {
+    return number <= 1 ? number : Factorial(number-1)*number;
 }
 
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+TEST_CASE( "Factorials are computed", "[factorial]" ) {
+    REQUIRE( Factorial(1) == 1 );
+    REQUIRE( Factorial(2) == 2 );
+    REQUIRE( Factorial(3) == 6 );
+    REQUIRE( Factorial(10) == 3628800 );
+}
+
+TEST_CASE( "TempAddTest", "[tmp]" ) {
+    REQUIRE( tmp::add(1,2) == 3 );
+}
+
+TEST_CASE( "TempRequestTest", "[tmp]" ) {
+    REQUIRE( tmp::request() == 200 );
 }

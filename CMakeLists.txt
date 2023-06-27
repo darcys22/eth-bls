@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.15)
 #
 
 project(
-  "Project"
+  "eth-bls"
   VERSION 0.1.0
   LANGUAGES CXX
 )
@@ -57,6 +57,16 @@ include(cmake/Vcpkg.cmake)
 #
 # Create library, setup header and source files
 #
+
+# GET CPR
+option(CPR_USE_SYSTEM_CURL "Enable the system_curl." ON)
+FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/libcpr/cpr.git
+                         GIT_TAG 0817715923c9705e68994eb52ef9df3f6845beba)
+FetchContent_MakeAvailable(cpr)
+
+# Get NLOHMANN
+FetchContent_Declare(nlohmann URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
+FetchContent_MakeAvailable(nlohmann)
 
 # Find all headers and implementation files
 include(cmake/SourcesAndHeaders.cmake)
@@ -147,26 +157,20 @@ set_project_warnings(${PROJECT_NAME})
 verbose_message("Applied compiler warnings. Using standard ${CMAKE_CXX_STANDARD}.\n")
 
 #
-# Enable Doxygen
-#
-
-include(cmake/Doxygen.cmake)
-
-#
 # Model project dependencies
 #
 
 # Identify and link with the specific "packages" the project uses
 #find_package(package_name package_version REQUIRED package_type [other_options])
-#target_link_libraries(
-#  ${PROJECT_NAME}
-#  PUBLIC
-#    dependency1 ...
-#  PRIVATE
-#    dependency2 ...
-#    ${PROJECT_NAME}_PROJECT_OPTIONS
-#    ${PROJECT_NAME}_PROJECT_WARNINGS
-#)
+target_link_libraries(
+  ${PROJECT_NAME}
+  PUBLIC
+    cpr::cpr
+  PRIVATE
+    nlohmann_json::nlohmann_json
+    #${PROJECT_NAME}_PROJECT_OPTIONS
+    #${PROJECT_NAME}_PROJECT_WARNINGS
+)
 #if(${PROJECT_NAME}_BUILD_EXECUTABLE AND ${PROJECT_NAME}_ENABLE_UNIT_TESTING)
 #  target_link_libraries(
 #    ${PROJECT_NAME}_LIB
