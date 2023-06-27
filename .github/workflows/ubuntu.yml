@@ -27,7 +27,7 @@ jobs:
         key: ${{ runner.os }}-dependencies
 
     - name: Install curl
-      run: sudo apt update && sudo apt install -y curl
+      run: sudo apt update && sudo apt install -y curl && sudo apt-get install libcurl4-openssl-dev
 
     - name: configure
       run: cmake -Bbuild -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/$INSTALL_LOCATION -DProject_ENABLE_CODE_COVERAGE=1
