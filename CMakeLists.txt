@@ -7,7 +7,6 @@ cmake_minimum_required(VERSION 3.15)
 project(
   "eth-bls"
   VERSION 0.1.0
-  LANGUAGES CXX
 )
 
 #
@@ -61,6 +60,9 @@ include(cmake/Vcpkg.cmake)
 # Get NLOHMANN
 FetchContent_Declare(nlohmann URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
 FetchContent_MakeAvailable(nlohmann)
+
+find_package(Boost 1.62 QUIET REQUIRED COMPONENTS system thread serialization program_options)
+add_subdirectory(src/crypto)
 
 add_subdirectory(external)
 
@@ -162,6 +164,7 @@ target_link_libraries(
   ${PROJECT_NAME}
   PUBLIC
     cpr::cpr
+    cncrypto
   PRIVATE
     nlohmann_json::nlohmann_json
     secp256k1

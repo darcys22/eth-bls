@@ -10,6 +10,12 @@ namespace tmp
     int64_t request();
 
     int ecdsa();
+
+    std::string toHexString(const std::array<unsigned char, 32>& bytes);
+
+    std::array<unsigned char, 32> hash(const std::string& in);
+
+// END
 }
 
 #endif  // TMP_TMP_H_

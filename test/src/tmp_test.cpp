@@ -1,3 +1,5 @@
+#include <iostream> 
+
 #include "eth-bls/tmp.hpp"
 
 #include <catch2/catch_test_macros.hpp>
@@ -24,4 +26,11 @@ TEST_CASE( "TempRequestTest", "[tmp]" ) {
 
 TEST_CASE( "TempECDSATest", "[tmp]" ) {
     REQUIRE( tmp::ecdsa() == 0 );
+}
+
+TEST_CASE( "TempHashTest", "[tmp]" ) {
+
+    std::string hash_hello_world = tmp::toHexString(tmp::hash("hello world!"));
+    std::cout << hash_hello_world << '\n';
+    REQUIRE( hash_hello_world == "57caa176af1ac0433c5df30e8dabcd2ec1af1e92a26eced5f719b88458777cd6" );
 }

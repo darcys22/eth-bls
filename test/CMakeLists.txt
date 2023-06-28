@@ -46,8 +46,9 @@ foreach(file ${test_sources})
     target_link_libraries(
       ${test_name}_Tests
       PUBLIC
-      Catch2::Catch2WithMain
+        Catch2::Catch2WithMain
         ${${CMAKE_PROJECT_NAME}_TEST_LIB}
+        cncrypto
     )
   else()
     message(FATAL_ERROR "Unknown testing library. Please setup your desired unit testing library by using `target_link_libraries`.")  
