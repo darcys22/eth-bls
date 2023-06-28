@@ -4,3 +4,6 @@
 [submodule "external/cpr"]
 	path = external/cpr
 	url = git@github.com:libcpr/cpr.git
+[submodule "external/Catch2"]
+	path = external/Catch2
+	url = git@github.com:catchorg/Catch2.git
