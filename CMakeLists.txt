@@ -58,12 +58,6 @@ include(cmake/Vcpkg.cmake)
 # Create library, setup header and source files
 #
 
-# GET CPR
-option(CPR_USE_SYSTEM_CURL "Enable the system_curl." ON)
-FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/libcpr/cpr.git
-                         GIT_TAG 0817715923c9705e68994eb52ef9df3f6845beba)
-FetchContent_MakeAvailable(cpr)
-
 # Get NLOHMANN
 FetchContent_Declare(nlohmann URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
 FetchContent_MakeAvailable(nlohmann)

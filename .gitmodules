@@ -1,3 +1,6 @@
 [submodule "external/secp256k1"]
 	path = external/secp256k1
 	url = git@github.com:bitcoin-core/secp256k1.git
+[submodule "external/cpr"]
+	path = external/cpr
+	url = git@github.com:libcpr/cpr.git
