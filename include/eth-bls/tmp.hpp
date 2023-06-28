@@ -8,6 +8,8 @@ namespace tmp
     int add(int, int);
 
     int64_t request();
+
+    int ecdsa();
 }
 
 #endif  // TMP_TMP_H_

@@ -21,3 +21,7 @@ TEST_CASE( "TempAddTest", "[tmp]" ) {
 TEST_CASE( "TempRequestTest", "[tmp]" ) {
     REQUIRE( tmp::request() == 200 );
 }
+
+TEST_CASE( "TempECDSATest", "[tmp]" ) {
+    REQUIRE( tmp::ecdsa() == 0 );
+}

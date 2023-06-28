@@ -68,6 +68,8 @@ FetchContent_MakeAvailable(cpr)
 FetchContent_Declare(nlohmann URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
 FetchContent_MakeAvailable(nlohmann)
 
+add_subdirectory(external)
+
 # Find all headers and implementation files
 include(cmake/SourcesAndHeaders.cmake)
 
@@ -168,6 +170,7 @@ target_link_libraries(
     cpr::cpr
   PRIVATE
     nlohmann_json::nlohmann_json
+    secp256k1
     #${PROJECT_NAME}_PROJECT_OPTIONS
     #${PROJECT_NAME}_PROJECT_WARNINGS
 )
@@ -245,39 +248,6 @@ verbose_message("Project is now aliased as ${PROJECT_NAME}::${PROJECT_NAME}.\n")
 #
 
 add_clang_format_target()
-
-#
-# Install library for easy downstream inclusion
-#
-
-include(GNUInstallDirs)
-install(
-  TARGETS
-  ${PROJECT_NAME}
-  EXPORT
-  ${PROJECT_NAME}Targets
-  LIBRARY DESTINATION
-  ${CMAKE_INSTALL_LIBDIR}
-  RUNTIME DESTINATION
-  ${CMAKE_INSTALL_BINDIR}
-  ARCHIVE DESTINATION
-  ${CMAKE_INSTALL_LIBDIR}
-  INCLUDES DESTINATION
-  include
-  PUBLIC_HEADER DESTINATION
-  include
-)
-
-install(
-  EXPORT
-  ${PROJECT_NAME}Targets
-  FILE
-  ${PROJECT_NAME}Targets.cmake
-  NAMESPACE
-  ${PROJECT_NAME}::
-  DESTINATION
-  ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-)
 
 #
 # Add version header
