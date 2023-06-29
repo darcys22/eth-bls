@@ -144,18 +144,3 @@ int tmp::ecdsa() {
 
     return 0;
 }
-
-std::string tmp::toHexString(const std::array<unsigned char, 32>& bytes) {
-    std::ostringstream oss;
-    for(const auto byte : bytes) {
-        oss << std::setw(2) << std::setfill('0') << std::hex << static_cast<int>(byte);
-    }
-    return oss.str();
-}
-
-std::array<unsigned char, 32> tmp::hash(const std::string& in) {
-    std::array<unsigned char, 32> bytes;
-    keccak(reinterpret_cast<const uint8_t*>(in.c_str()), in.size(), bytes.data(), 32);
-    return bytes;
-}
-

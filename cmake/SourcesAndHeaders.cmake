@@ -1,5 +1,6 @@
 set(sources
     src/tmp.cpp
+    src/utils.cpp
     src/EthereumClient.cpp
     src/signer.cpp
 )
@@ -11,6 +12,7 @@ set(exe_sources
 
 set(headers
     include/eth-bls/tmp.hpp
+    include/eth-bls/utils.hpp
     include/eth-bls/config.hpp
     include/eth-bls/EthereumClient.hpp
     include/eth-bls/signer.hpp

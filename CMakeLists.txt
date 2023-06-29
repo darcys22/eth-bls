@@ -57,6 +57,9 @@ include(cmake/Vcpkg.cmake)
 # Create library, setup header and source files
 #
 
+# Find all headers and implementation files
+include(cmake/SourcesAndHeaders.cmake)
+
 # Get NLOHMANN
 FetchContent_Declare(nlohmann URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
 FetchContent_MakeAvailable(nlohmann)
@@ -65,9 +68,6 @@ find_package(Boost 1.62 QUIET REQUIRED COMPONENTS system thread serialization pr
 add_subdirectory(src/crypto)
 
 add_subdirectory(external)
-
-# Find all headers and implementation files
-include(cmake/SourcesAndHeaders.cmake)
 
 if(${PROJECT_NAME}_BUILD_EXECUTABLE)
   add_executable(${PROJECT_NAME} ${exe_sources})
@@ -117,6 +117,12 @@ else()
   endif()
 endif()
 
+if(${PROJECT_NAME}_ENABLE_UNIT_TESTING)
+  enable_testing()
+  message(STATUS "Build unit tests for the project. Tests should always be found in the test folder\n")
+  add_subdirectory(test)
+endif()
+
 set_target_properties(
   ${PROJECT_NAME}
   PROPERTIES
@@ -155,6 +161,11 @@ set_project_warnings(${PROJECT_NAME})
 verbose_message("Applied compiler warnings. Using standard ${CMAKE_CXX_STANDARD}.\n")
 
 #
+# Unit testing setup
+#
+
+
+#
 # Model project dependencies
 #
 
@@ -165,9 +176,9 @@ target_link_libraries(
   PUBLIC
     cpr::cpr
     cncrypto
+    secp256k1
   PRIVATE
     nlohmann_json::nlohmann_json
-    secp256k1
     #${PROJECT_NAME}_PROJECT_OPTIONS
     #${PROJECT_NAME}_PROJECT_WARNINGS
 )
@@ -323,12 +334,3 @@ endif()
 
 message(STATUS "Finished building requirements for installing the package.\n")
 
-#
-# Unit testing setup
-#
-
-if(${PROJECT_NAME}_ENABLE_UNIT_TESTING)
-  enable_testing()
-  message(STATUS "Build unit tests for the project. Tests should always be found in the test folder\n")
-  add_subdirectory(test)
-endif()

@@ -41,7 +41,7 @@
 
 
 /* Returns 1 on success, and 0 on failure. */
-static int fill_random(unsigned char* data, size_t size) {
+[[maybe_unused]] static int fill_random(unsigned char* data, size_t size) {
 #if defined(_WIN32)
     NTSTATUS res = BCryptGenRandom(NULL, data, size, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
     if (res != STATUS_SUCCESS || size > ULONG_MAX) {
@@ -70,7 +70,7 @@ static int fill_random(unsigned char* data, size_t size) {
     return 0;
 }
 
-static void print_hex(unsigned char* data, size_t size) {
+[[maybe_unused]] static void print_hex(unsigned char* data, size_t size) {
     size_t i;
     printf("0x");
     for (i = 0; i < size; i++) {
@@ -84,7 +84,7 @@ static void print_hex(unsigned char* data, size_t size) {
 #include <Windows.h>
 #endif
 /* Cleanses memory to prevent leaking sensitive info. Won't be optimized out. */
-static void secure_erase(void *ptr, size_t len) {
+[[maybe_unused]] static void secure_erase(void *ptr, size_t len) {
 #if defined(_MSC_VER)
     /* SecureZeroMemory is guaranteed not to be optimized out by MSVC. */
     SecureZeroMemory(ptr, len);

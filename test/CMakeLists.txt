@@ -31,11 +31,6 @@ foreach(file ${test_sources})
     verbose_message("Code coverage is enabled and provided with GCC.")
   endif()
 
-  #
-  # Load the desired unit testing framework
-  #
-  # Currently supported: Catch2.
-
   if(${CMAKE_PROJECT_NAME}_BUILD_EXECUTABLE)
     set(${CMAKE_PROJECT_NAME}_TEST_LIB ${CMAKE_PROJECT_NAME}_LIB)
   else()
