@@ -7,3 +7,6 @@
 [submodule "external/Catch2"]
 	path = external/Catch2
 	url = git@github.com:catchorg/Catch2.git
+[submodule "external/rlpvalue"]
+	path = external/rlpvalue
+	url = git@github.com:bloq/rlpvalue.git
