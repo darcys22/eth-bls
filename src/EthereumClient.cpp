@@ -76,8 +76,7 @@ uint64_t EthereumClient::getBalance(const std::string& address) {
     params.push_back("latest");
 
     auto response = makeJsonRpcRequest("eth_getBalance", params);
-
-    if (response.status_code == 200) {
+if (response.status_code == 200) {
         nlohmann::json responseJson = nlohmann::json::parse(response.text);
 
         if (responseJson.find("error") != responseJson.end())
@@ -94,45 +93,28 @@ uint64_t EthereumClient::getBalance(const std::string& address) {
     }
 }
 
-
-/**
-* Returns a Uint8Array Array of the raw Bytes of the EIP-1559 transaction, in order.
-*
-* Format: `[chainId, nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data,
-* accessList, signatureYParity, signatureR, signatureS]`
-*
-* Use {@link FeeMarketEIP1559Transaction.serialize} to add a transaction to a block
-* with {@link Block.fromValuesArray}.
-*
-* For an unsigned tx this method uses the empty Bytes values for the
-* signature parameters `v`, `r` and `s` for encoding. For an EIP-155 compliant
-* representation for external signing use {@link FeeMarketEIP1559Transaction.getMessageToSign}.
-*/
-std::vector<unsigned char> Transaction::raw() const {
-    std::vector<unsigned char> rawBytes;
+FeeData EthereumClient::getFeeData() {
+    // Get latest block
+    nlohmann::json params = nlohmann::json::array();
+    auto blockResponse = makeJsonRpcRequest("eth_getBlockByNumber", params);
+    if (blockResponse.status_code != 200) {
+        throw std::runtime_error("Failed to get the latest block");
+    }
+    nlohmann::json blockJson = nlohmann::json::parse(blockResponse.text);
+    uint64_t baseFeePerGas = std::stoull(blockJson["result"]["baseFeePerGas"].get<std::string>(), nullptr, 16);
     
-    auto appendBytes = [&rawBytes](const std::vector<unsigned char>& bytes) {
-        rawBytes.insert(rawBytes.end(), bytes.begin(), bytes.end());
-    };
+    // Get gas price
+    params = nlohmann::json::array();
+    auto gasPriceResponse = makeJsonRpcRequest("eth_gasPrice", params);
+    if (gasPriceResponse.status_code != 200) {
+        throw std::runtime_error("Failed to get gas price");
+    }
+    nlohmann::json gasPriceJson = nlohmann::json::parse(gasPriceResponse.text);
+    uint64_t gasPrice = std::stoull(gasPriceJson["result"].get<std::string>(), nullptr, 16);
 
-    auto appendString = [&rawBytes](const std::string& str) {
-        rawBytes.insert(rawBytes.end(), str.begin(), str.end());
-    };
-    
-    appendBytes(utils::intToBytes(chainId));
-    appendBytes(utils::intToBytes(nonce));
-    appendBytes(utils::intToBytes(maxPriorityFeePerGas));
-    appendBytes(utils::intToBytes(maxFeePerGas));
-    appendBytes(utils::intToBytes(gasLimit));
-    appendString(to);
-    appendBytes(utils::intToBytes(value));
-    appendString(data);
-    // AccessList -> not going to use but is this right way of handling?
-    appendBytes(std::vector<unsigned char>());
-    appendBytes(signatureYParity != 0 ? utils::intToBytes(signatureYParity) : std::vector<unsigned char>());
-    appendBytes(signatureR.empty() ? std::vector<unsigned char>() : signatureR);
-    appendBytes(signatureS.empty() ? std::vector<unsigned char>() : signatureS);
+    // Compute maxFeePerGas and maxPriorityFeePerGas based on baseFeePerGas
+    uint64_t maxPriorityFeePerGas = 1000000000;
+    uint64_t maxFeePerGas = (baseFeePerGas * 2) + maxPriorityFeePerGas;
 
-    return rawBytes;
+    return FeeData(gasPrice, maxFeePerGas, maxPriorityFeePerGas);
 }
-

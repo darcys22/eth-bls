@@ -10,6 +10,14 @@
 #include <secp256k1_recovery.h>
 
 Signer::Signer() {
+    initContext();
+}
+
+Signer::Signer(const std::shared_ptr<EthereumClient>& client) : ethClient(client) {
+    initContext();
+}
+
+void Signer::initContext() {
     ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY);
     unsigned char randomize[32];
     if (!fill_random(randomize, sizeof(randomize))) {
@@ -81,4 +89,43 @@ std::vector<unsigned char> Signer::sign(const std::string& message, const std::v
     signature.push_back(static_cast<unsigned char>(recid + 27));
 
     return signature;
+}
+
+void Signer::populateTransaction(Transaction& tx, const SenderTransactOpts& opts) {
+    // Check if the signer has a client
+    if (!hasClient()) {
+        throw std::runtime_error("Signer does not have a client");
+    }
+    
+    // Populate the transaction with SenderTransactOpts parameters
+    tx.chainId = opts.chainID;
+    if (opts.gasPrice > 0 && tx.gasPrice == 0)
+        tx.gasPrice = opts.gasPrice;
+    
+    // TODO sean do these
+    // If nonce is not set, get it from the network
+    //if (tx.nonce == 0) {
+        //tx.nonce = ethClient->getNonce("pending");
+    //}
+
+    // Get network's chain ID
+    //uint64_t networkChainId = ethClient->getNetworkChainId();
+
+    // Check and set chainId
+    //if (tx.chainId != 0) {
+        //assert(tx.chainId == networkChainId); // Ensure chainId matches network's chainId
+    //} else {
+        //tx.chainId = networkChainId;
+    //}
+
+    // Get fee data
+    FeeData feeData = ethClient->getFeeData();
+
+    if (tx.maxFeePerGas == 0) {
+        tx.maxFeePerGas = feeData.maxFeePerGas;
+    }
+
+    if (tx.maxPriorityFeePerGas == 0) {
+        tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
+    }
 }

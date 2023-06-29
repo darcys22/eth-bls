@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "eth-bls/EthereumClient.hpp"
 #include "eth-bls/signer.hpp"
 #include "eth-bls/config.hpp"
@@ -26,11 +28,17 @@ TEST_CASE( "HashTest", "[utils]" ) {
 }
 
 inline constexpr std::string_view PRIVATE_KEY = "96a656cbd64281ea82257ca9978093b25117592287e4e07f5be660d1701f03e9";
-TEST_CASE( "SigningTest", "[utils]" ) {
+TEST_CASE( "SigningTest", "[signer]" ) {
     std::vector<unsigned char> seckey = utils::fromHexString(std::string(PRIVATE_KEY));
     Signer signer;
     std::string hash_hello_world = utils::toHexString(utils::hash("Hello World!\n"));
     const auto signature_bytes = signer.sign("Hello World!", seckey);
     std::string signature_hex = utils::toHexString(signature_bytes);
     REQUIRE( signature_hex == "35f409302082e02b5126c82be93a3946d30e93722ce3ff87bdb01fc385fe312054f3fade7fab80dcabadabf96af75577327dfd064abd47a36543a475e04840e71c" );
+}
+
+TEST_CASE( "TransactionTest", "[transaction]" ) {
+    Transaction tx(1, "0xrecipientAddress", 100);
+
+    std::cout << "Transaction: " << utils::toHexString(tx.raw()) << '\n';
 }

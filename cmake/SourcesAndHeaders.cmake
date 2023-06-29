@@ -3,6 +3,7 @@ set(sources
     src/utils.cpp
     src/EthereumClient.cpp
     src/signer.cpp
+    src/transaction.cpp
 )
 
 set(exe_sources
@@ -16,6 +17,7 @@ set(headers
     include/eth-bls/config.hpp
     include/eth-bls/EthereumClient.hpp
     include/eth-bls/signer.hpp
+    include/eth-bls/transaction.hpp
     include/eth-bls/ecdsa_util.h
 )
 
