@@ -21,5 +21,7 @@ namespace utils
     std::vector<unsigned char> fromHexString(const std::string& hex_str);
 
     std::array<unsigned char, 32> hash(const std::string& in);
+
+    std::vector<unsigned char> intToBytes(uint64_t num);
 // END
 }

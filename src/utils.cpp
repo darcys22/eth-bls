@@ -22,3 +22,12 @@ std::array<unsigned char, 32> utils::hash(const std::string& in) {
     return bytes;
 }
 
+std::vector<unsigned char> utils::intToBytes(uint64_t num) {
+    std::vector<unsigned char> result;
+    while (num != 0) {
+        result.insert(result.begin(), static_cast<unsigned char>(num & 0xFF));
+        num >>= 8;
+    }
+    return result;
+}
+

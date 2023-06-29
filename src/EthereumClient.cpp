@@ -1,6 +1,9 @@
 // EthereumClient.cpp
-#include "eth-bls/EthereumClient.hpp"
 #include <iostream>
+
+#include "eth-bls/EthereumClient.hpp"
+#include "eth-bls/utils.hpp"
+
 
 EthereumClient::EthereumClient(const std::string& name, const std::string& _url) 
     : clientName(name), url(_url) {
@@ -91,19 +94,45 @@ uint64_t EthereumClient::getBalance(const std::string& address) {
     }
 }
 
-std::string Transaction::raw() const {
-    // Convert transaction fields to the format required by Ethereum
-    // ...
 
-    // Sign the transaction
-    // ...
-
-    // Encode the transaction and signature using RLP encoding
-    // ...
-
-    // Convert to hex
-    std::string rawTransaction = ""/* result of RLP encoding */;
+/**
+* Returns a Uint8Array Array of the raw Bytes of the EIP-1559 transaction, in order.
+*
+* Format: `[chainId, nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data,
+* accessList, signatureYParity, signatureR, signatureS]`
+*
+* Use {@link FeeMarketEIP1559Transaction.serialize} to add a transaction to a block
+* with {@link Block.fromValuesArray}.
+*
+* For an unsigned tx this method uses the empty Bytes values for the
+* signature parameters `v`, `r` and `s` for encoding. For an EIP-155 compliant
+* representation for external signing use {@link FeeMarketEIP1559Transaction.getMessageToSign}.
+*/
+std::vector<unsigned char> Transaction::raw() const {
+    std::vector<unsigned char> rawBytes;
     
-    return rawTransaction;
+    auto appendBytes = [&rawBytes](const std::vector<unsigned char>& bytes) {
+        rawBytes.insert(rawBytes.end(), bytes.begin(), bytes.end());
+    };
+
+    auto appendString = [&rawBytes](const std::string& str) {
+        rawBytes.insert(rawBytes.end(), str.begin(), str.end());
+    };
+    
+    appendBytes(utils::intToBytes(chainId));
+    appendBytes(utils::intToBytes(nonce));
+    appendBytes(utils::intToBytes(maxPriorityFeePerGas));
+    appendBytes(utils::intToBytes(maxFeePerGas));
+    appendBytes(utils::intToBytes(gasLimit));
+    appendString(to);
+    appendBytes(utils::intToBytes(value));
+    appendString(data);
+    // AccessList -> not going to use but is this right way of handling?
+    appendBytes(std::vector<unsigned char>());
+    appendBytes(signatureYParity != 0 ? utils::intToBytes(signatureYParity) : std::vector<unsigned char>());
+    appendBytes(signatureR.empty() ? std::vector<unsigned char>() : signatureR);
+    appendBytes(signatureS.empty() ? std::vector<unsigned char>() : signatureS);
+
+    return rawBytes;
 }
 

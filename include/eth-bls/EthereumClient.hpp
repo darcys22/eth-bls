@@ -21,18 +21,25 @@ public:
 
 class Transaction {
 public:
-    uint64_t nonce;
+    uint64_t chainId;
+    uint64_t nonce;                     
+    uint64_t maxPriorityFeePerGas;
+    uint64_t maxFeePerGas;
+    uint64_t gasLimit;                                                           
     std::string to;
-    uint64_t value;
-    uint64_t gasLimit;
-    uint64_t gasPrice;
+    uint64_t value;     
     std::string data;
+    uint64_t signatureYParity;
+    std::vector<unsigned char> signatureR;
+    std::vector<unsigned char> signatureS;
 
     // Constructor
-    Transaction(uint64_t _nonce, const std::string& _to, uint64_t _value, uint64_t _gasLimit, uint64_t _gasPrice, const std::string& _data = "")
-        : nonce(_nonce), to(_to), value(_value), gasLimit(_gasLimit), gasPrice(_gasPrice), data(_data) {}
+    Transaction(uint64_t _chainId, uint64_t _nonce, uint64_t _maxPriorityFeePerGas, uint64_t _maxFeePerGas, uint64_t _gasLimit, const std::string& _to, uint64_t _value, const std::string& _data = "", uint64_t _signatureYParity = 0, const std::vector<unsigned char>& _signatureR = {}, const std::vector<unsigned char>& _signatureS = {})
+        : chainId(_chainId), nonce(_nonce), maxPriorityFeePerGas(_maxPriorityFeePerGas), maxFeePerGas(_maxFeePerGas), gasLimit(_gasLimit), to(_to), value(_value), data(_data), signatureYParity(_signatureYParity), signatureR(_signatureR), signatureS(_signatureS) {}
 
-    std::string raw() const;
+
+    std::vector<unsigned char> raw() const;
+
 };
 
 class EthereumClient {
