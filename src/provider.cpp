@@ -1,20 +1,20 @@
-// EthereumClient.cpp
+// provider.cpp
 #include <iostream>
 
-#include "eth-bls/EthereumClient.hpp"
+#include "eth-bls/provider.hpp"
 #include "eth-bls/utils.hpp"
 
 
-EthereumClient::EthereumClient(const std::string& name, const std::string& _url) 
+Provider::Provider(const std::string& name, const std::string& _url) 
     : clientName(name), url(_url) {
     // Initialize client
 }
 
-EthereumClient::~EthereumClient() {
+Provider::~Provider() {
     // Cleanup client
 }
 
-void EthereumClient::connectToNetwork() {
+void Provider::connectToNetwork() {
     // Here we can verify connection by calling some simple JSON RPC method like `net_version`
     auto response = makeJsonRpcRequest("net_version", cpr::Body("{}"));
     if (response.status_code == 200) {
@@ -24,12 +24,12 @@ void EthereumClient::connectToNetwork() {
     }
 }
 
-void EthereumClient::disconnectFromNetwork() {
+void Provider::disconnectFromNetwork() {
     // Code to disconnect from Ethereum network
     std::cout << "Disconnected from the Ethereum network.\n";
 }
 
-cpr::Response EthereumClient::makeJsonRpcRequest(const std::string& method, const nlohmann::json& params) {
+cpr::Response Provider::makeJsonRpcRequest(const std::string& method, const nlohmann::json& params) {
     nlohmann::json bodyJson;
     bodyJson["jsonrpc"] = "2.0";
     bodyJson["method"] = method;
@@ -46,7 +46,7 @@ cpr::Response EthereumClient::makeJsonRpcRequest(const std::string& method, cons
 }
 
 // Sending transaction with SenderTransactOpts
-cpr::Response EthereumClient::sendTransaction(const SenderTransactOpts& opts, const std::string& to, uint64_t value, const std::string& data) {
+cpr::Response Provider::sendTransaction(const SenderTransactOpts& opts, const std::string& to, uint64_t value, const std::string& data) {
     // Prepare the transaction parameters
     nlohmann::json params = nlohmann::json::array();
     nlohmann::json transaction;
@@ -63,21 +63,24 @@ cpr::Response EthereumClient::sendTransaction(const SenderTransactOpts& opts, co
 }
 
 // Sending signed transaction
-cpr::Response EthereumClient::sendTransaction(const Transaction& signedTx) {
+cpr::Response Provider::sendTransaction(const Transaction& signedTx) {
     // Create and send a raw transaction
     nlohmann::json params = nlohmann::json::array();
     params.push_back(signedTx.serialized());  // Assuming Transaction::raw() returns the raw, signed transaction as hex
     return makeJsonRpcRequest("eth_sendRawTransaction", params);
 }
 
-uint64_t EthereumClient::getBalance(const std::string& address) {
+uint64_t Provider::getBalance(const std::string& address) {
+    std::cout << "something" << '\n';
     nlohmann::json params = nlohmann::json::array();
     params.push_back(address);
     params.push_back("latest");
 
+    std::cout << "something" << '\n';
     auto response = makeJsonRpcRequest("eth_getBalance", params);
-if (response.status_code == 200) {
+    if (response.status_code == 200) {
         nlohmann::json responseJson = nlohmann::json::parse(response.text);
+        std::cout << "something" << '\n';
 
         if (responseJson.find("error") != responseJson.end())
             throw std::runtime_error("Error getting balance: " + responseJson["error"]["message"].get<std::string>());
@@ -91,9 +94,10 @@ if (response.status_code == 200) {
     } else {
         throw std::runtime_error("Failed to get balance for address " + address);
     }
+    std::cout << "something" << '\n';
 }
 
-FeeData EthereumClient::getFeeData() {
+FeeData Provider::getFeeData() {
     // Get latest block
     nlohmann::json params = nlohmann::json::array();
     auto blockResponse = makeJsonRpcRequest("eth_getBlockByNumber", params);

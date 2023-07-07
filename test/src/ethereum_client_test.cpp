@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "eth-bls/EthereumClient.hpp"
+#include "eth-bls/provider.hpp"
 #include "eth-bls/signer.hpp"
 #include "eth-bls/config.hpp"
 #include "eth-bls/utils.hpp"
@@ -8,15 +8,15 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_all.hpp>
 
-TEST_CASE( "Get balance from Arbitrum network", "[ethereum]" ) {
+TEST_CASE( "Get balance from sepolia network", "[ethereum]" ) {
     // Get the arbitrum config
-    const auto& config = ethbls::get_config(ethbls::network_type::ARBITRUM);
+    const auto& config = ethbls::get_config(ethbls::network_type::SEPOLIA);
 
     // Construct the client with the Arbitrum RPC URL
-    EthereumClient client("Arbitrum Client", std::string(config.RPC_URL));
+    Provider client("Sepolia Client", std::string(config.RPC_URL));
 
     // Get the balance of the test address
-    uint64_t balance = client.getBalance("0x000433708645EaaD9f65687CDbe4033d92f6A6d2");
+    uint64_t balance = client.getBalance("0x2Ccb8b65024E4aA9615a8E704DFb11BE76674f1F");
 
     // Check that the balance is greater than zero
     REQUIRE( balance > 0 );
@@ -65,8 +65,6 @@ TEST_CASE( "Hashes an unsigned transaction correctly", "[transaction]" ) {
     Transaction tx(1, "0xA6C077fd9283421C657EcEa8a9c1422cc6CEbc80", 1000000000000000000, 21000);
     std::string unsigned_hash = tx.hash();
     std::string correct_hash = "0xf81a17092cfb066efa3ff6ef92016adc06ff66a64327359c4003d215d56128b3";
-    std::cout << "Hash: " << unsigned_hash << '\n';
-    std::cout << "Should be: " << correct_hash << '\n';
     REQUIRE(unsigned_hash == correct_hash);
 }
 

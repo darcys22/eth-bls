@@ -87,7 +87,7 @@ namespace config {
         inline constexpr std::string_view OFFICIAL_WEBSITE = "https://portal.arbitrum.one";
     }  // namespace arbitrum
     namespace sepolia {
-        inline constexpr std::string_view RPC_URL = "https://rpc.sepolia.dev";
+        inline constexpr std::string_view RPC_URL = "https://rpc.sepolia.online/";
         inline constexpr uint32_t CHAIN_ID = 11155111;
         inline constexpr std::string_view BLOCK_EXPLORER_URL = "https://sepolia.etherscan.io/";
         inline constexpr std::string_view OFFICIAL_WEBSITE = "https://sepolia.dev/";

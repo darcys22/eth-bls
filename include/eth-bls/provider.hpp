@@ -1,6 +1,5 @@
-// EthereumClient.hpp
-#ifndef ETHEREUM_CLIENT_H
-#define ETHEREUM_CLIENT_H
+// Provider.hpp
+#pragma once
 
 #include <string>
 #include <cpr/cpr.h>
@@ -29,13 +28,13 @@ struct FeeData {
         : gasPrice(_gasPrice), maxFeePerGas(_maxFeePerGas), maxPriorityFeePerGas(_maxPriorityFeePerGas) {}
 };
 
-class EthereumClient {
+class Provider {
     std::string clientName;
     cpr::Url url;
     cpr::Session session;
 public:
-    EthereumClient(const std::string& name, const std::string& _url);
-    ~EthereumClient();
+    Provider(const std::string& name, const std::string& _url);
+    ~Provider();
 
     void connectToNetwork();
     void disconnectFromNetwork();
@@ -49,6 +48,4 @@ public:
 private:
     cpr::Response makeJsonRpcRequest(const std::string& method, const nlohmann::json& params);
 };
-
-#endif
 

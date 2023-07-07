@@ -6,12 +6,12 @@
 #include <string>
 #include <memory>
 
-#include "eth-bls/EthereumClient.hpp"
+#include "eth-bls/provider.hpp"
 
 class Signer {
 private:
     secp256k1_context* ctx;
-    std::shared_ptr<EthereumClient> ethClient;
+    std::shared_ptr<Provider> provider;
 
     uint64_t maxPriorityFeePerGas = 0;
     uint64_t maxFeePerGas = 0;
@@ -19,7 +19,7 @@ private:
 
 public:
     Signer();
-    Signer(const std::shared_ptr<EthereumClient>& client);
+    Signer(const std::shared_ptr<Provider>& client);
     ~Signer();
 
     // Returns <Pubkey, Seckey>
@@ -29,8 +29,8 @@ public:
     std::vector<unsigned char> sign(const std::string& hash, const std::vector<unsigned char>& seckey);
 
     // Client usage methods
-    bool hasClient() const { return static_cast<bool>(ethClient); }
-    std::shared_ptr<EthereumClient> getClient() { return ethClient; }
+    bool hasProvider() const { return static_cast<bool>(provider); }
+    std::shared_ptr<Provider> getProvider() { return provider; }
 
     void populateTransaction(Transaction& tx, const SenderTransactOpts& opts);
 

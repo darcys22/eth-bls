@@ -1,7 +1,7 @@
 set(sources
     src/tmp.cpp
     src/utils.cpp
-    src/EthereumClient.cpp
+    src/provider.cpp
     src/signer.cpp
     src/transaction.cpp
 )
@@ -15,7 +15,7 @@ set(headers
     include/eth-bls/tmp.hpp
     include/eth-bls/utils.hpp
     include/eth-bls/config.hpp
-    include/eth-bls/EthereumClient.hpp
+    include/eth-bls/provider.hpp
     include/eth-bls/signer.hpp
     include/eth-bls/transaction.hpp
     include/eth-bls/ecdsa_util.h

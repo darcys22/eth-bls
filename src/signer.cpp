@@ -14,7 +14,7 @@ Signer::Signer() {
     initContext();
 }
 
-Signer::Signer(const std::shared_ptr<EthereumClient>& client) : ethClient(client) {
+Signer::Signer(const std::shared_ptr<Provider>& _provider) : provider(_provider) {
     initContext();
 }
 
@@ -95,8 +95,8 @@ std::vector<unsigned char> Signer::sign(const std::string& hash, const std::vect
 
 void Signer::populateTransaction(Transaction& tx, const SenderTransactOpts& opts) {
     // Check if the signer has a client
-    if (!hasClient()) {
-        throw std::runtime_error("Signer does not have a client");
+    if (!hasProvider()) {
+        throw std::runtime_error("Signer does not have a provider");
     }
     
     // Populate the transaction with SenderTransactOpts parameters
