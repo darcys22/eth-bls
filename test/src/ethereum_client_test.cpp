@@ -37,8 +37,33 @@ TEST_CASE( "SigningTest", "[signer]" ) {
     REQUIRE( signature_hex == "35f409302082e02b5126c82be93a3946d30e93722ce3ff87bdb01fc385fe312054f3fade7fab80dcabadabf96af75577327dfd064abd47a36543a475e04840e71c" );
 }
 
-TEST_CASE( "TransactionTest", "[transaction]" ) {
-    Transaction tx(1, "0xrecipientAddress", 100);
 
-    std::cout << "Transaction: " << utils::toHexString(tx.raw()) << '\n';
+//Raw transaction data
+//{
+  //type: null,
+  //to: '0xA6C077fd9283421C657EcEa8a9c1422cc6CEbc80',
+  //data: '0x',
+  //nonce: 1,
+  //gasLimit: '21000',
+  //gasPrice: null,
+  //maxPriorityFeePerGas: null,
+  //maxFeePerGas: null,
+  //value: '1000000000000000000',
+  //chainId: '1',
+  //sig: null,
+  //accessList: null
+//}
+//0x02e70101808082520894a6c077fd9283421c657ecea8a9c1422cc6cebc80880de0b6b3a764000080c0
+TEST_CASE( "Serialise a raw transaction correctly", "[transaction]" ) {
+    Transaction tx(1, "0xA6C077fd9283421C657EcEa8a9c1422cc6CEbc80", 1000000000000000000, 21000);
+    std::string raw_tx = tx.serialized();
+    std::string correct_raw_tx = "0x02e70101808082520894a6c077fd9283421c657ecea8a9c1422cc6cebc80880de0b6b3a764000080c0";
+    REQUIRE(raw_tx == correct_raw_tx);
+}
+
+TEST_CASE( "Hashes an unsigned transaction correctly", "[transaction]" ) {
+    Transaction tx(1, "0xA6C077fd9283421C657EcEa8a9c1422cc6CEbc80", 1000000000000000000, 21000);
+    std::string unsigned_hash = tx.hash();
+    std::string correct_hash = "0xf81a17092cfb066efa3ff6ef92016adc06ff66a64327359c4003d215d56128b3";
+    REQUIRE(unsigned_hash == correct_hash);
 }

@@ -1,11 +1,18 @@
 #include "eth-bls/utils.hpp"
 
+#include <algorithm>
+
 extern "C" {
 #include "crypto/keccak.h"
 }
 
-std::vector<unsigned char> utils::fromHexString(const std::string& hex_str) {
+std::vector<unsigned char> utils::fromHexString(std::string hex_str) {
     std::vector<unsigned char> bytes;
+
+    // Check for "0x" prefix and remove it
+    if(hex_str.size() >= 2 && hex_str[0] == '0' && hex_str[1] == 'x') {
+        hex_str = hex_str.substr(2);
+    }
 
     for (unsigned int i = 0; i < hex_str.length(); i += 2) {
         std::string byteString = hex_str.substr(i, 2);
@@ -16,18 +23,37 @@ std::vector<unsigned char> utils::fromHexString(const std::string& hex_str) {
     return bytes;
 }
 
-std::array<unsigned char, 32> utils::hash(const std::string& in) {
-    std::array<unsigned char, 32> bytes;
-    keccak(reinterpret_cast<const uint8_t*>(in.c_str()), in.size(), bytes.data(), 32);
-    return bytes;
+std::array<unsigned char, 32> utils::hash(std::string in) {
+    std::vector<unsigned char> bytes;
+
+    // Check for "0x" prefix and if exists, convert the hex to bytes
+    if(in.size() >= 2 && in[0] == '0' && in[1] == 'x') {
+        bytes = fromHexString(in);
+        in = std::string(bytes.begin(), bytes.end());
+    }
+
+    std::array<unsigned char, 32> hash;
+    keccak(reinterpret_cast<const uint8_t*>(in.c_str()), in.size(), hash.data(), 32);
+    return hash;
 }
 
 std::vector<unsigned char> utils::intToBytes(uint64_t num) {
-    std::vector<unsigned char> result;
-    while (num != 0) {
-        result.insert(result.begin(), static_cast<unsigned char>(num & 0xFF));
-        num >>= 8;
+    if (num == 0) 
+        return std::vector<unsigned char>{};
+
+    std::stringstream stream;
+    stream << std::hex << num;
+    std::string hex = stream.str();
+    if (hex.length() % 2) { hex = "0" + hex; }
+
+    std::vector<unsigned char> result(hex.length() / 2);
+    for (size_t i = 0; i < hex.length(); i += 2) {
+        std::string byteString = hex.substr(i, 2);
+        unsigned char byte = static_cast<unsigned char>(std::stoi(byteString, nullptr, 16));
+        result[i / 2] = byte;
     }
+
+    // TODO sean if this isnt used remove algorithm header
+    //std::reverse(result.begin(), result.end());
     return result;
 }
-

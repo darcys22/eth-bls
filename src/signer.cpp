@@ -98,9 +98,9 @@ void Signer::populateTransaction(Transaction& tx, const SenderTransactOpts& opts
     }
     
     // Populate the transaction with SenderTransactOpts parameters
-    tx.chainId = opts.chainID;
-    if (opts.gasPrice > 0 && tx.gasPrice == 0)
-        tx.gasPrice = opts.gasPrice;
+    //tx.chainId = opts.chainID;
+    //if (opts.gasPrice > 0 && tx.gasPrice == 0)
+        //tx.gasPrice = opts.gasPrice;
     
     // TODO sean do these
     // If nonce is not set, get it from the network
@@ -119,13 +119,13 @@ void Signer::populateTransaction(Transaction& tx, const SenderTransactOpts& opts
     //}
 
     // Get fee data
-    FeeData feeData = ethClient->getFeeData();
+    //FeeData feeData = ethClient->getFeeData();
 
-    if (tx.maxFeePerGas == 0) {
-        tx.maxFeePerGas = feeData.maxFeePerGas;
-    }
+    //if (tx.maxFeePerGas == 0) {
+        //tx.maxFeePerGas = feeData.maxFeePerGas;
+    //}
 
-    if (tx.maxPriorityFeePerGas == 0) {
-        tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
-    }
+    //if (tx.maxPriorityFeePerGas == 0) {
+        //tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
+    //}
 }

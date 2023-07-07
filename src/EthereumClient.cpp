@@ -66,7 +66,7 @@ cpr::Response EthereumClient::sendTransaction(const SenderTransactOpts& opts, co
 cpr::Response EthereumClient::sendTransaction(const Transaction& signedTx) {
     // Create and send a raw transaction
     nlohmann::json params = nlohmann::json::array();
-    params.push_back(signedTx.raw());  // Assuming Transaction::raw() returns the raw, signed transaction as hex
+    params.push_back(signedTx.serialized());  // Assuming Transaction::raw() returns the raw, signed transaction as hex
     return makeJsonRpcRequest("eth_sendRawTransaction", params);
 }
 
