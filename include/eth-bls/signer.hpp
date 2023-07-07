@@ -37,6 +37,8 @@ public:
     std::vector<unsigned char> signMessage(const std::string& message, const std::vector<unsigned char>& seckey);
     std::string signTransaction(Transaction& tx, const std::vector<unsigned char>& seckey);
 
+    std::string sendTransaction(Transaction& tx, const std::vector<unsigned char>& seckey);
+
 
 private:
     void initContext();

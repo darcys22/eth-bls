@@ -9,10 +9,10 @@
 #include <catch2/catch_all.hpp>
 
 TEST_CASE( "Get balance from sepolia network", "[ethereum]" ) {
-    // Get the arbitrum config
+    // Get the sepolia config
     const auto& config = ethbls::get_config(ethbls::network_type::SEPOLIA);
 
-    // Construct the client with the Arbitrum RPC URL
+    // Construct the client with the sepolia RPC URL
     Provider client("Sepolia Client", std::string(config.RPC_URL));
 
     // Get the balance of the test address
@@ -55,14 +55,16 @@ TEST_CASE( "SigningTest", "[signer]" ) {
 //}
 //0x02e70101808082520894a6c077fd9283421c657ecea8a9c1422cc6cebc80880de0b6b3a764000080c0
 TEST_CASE( "Serialise a raw transaction correctly", "[transaction]" ) {
-    Transaction tx(1, "0xA6C077fd9283421C657EcEa8a9c1422cc6CEbc80", 1000000000000000000, 21000);
+    Transaction tx("0xA6C077fd9283421C657EcEa8a9c1422cc6CEbc80", 1000000000000000000, 21000);
+    tx.nonce = 1;
     std::string raw_tx = tx.serialized();
     std::string correct_raw_tx = "0x02e70101808082520894a6c077fd9283421c657ecea8a9c1422cc6cebc80880de0b6b3a764000080c0";
     REQUIRE(raw_tx == correct_raw_tx);
 }
 
 TEST_CASE( "Hashes an unsigned transaction correctly", "[transaction]" ) {
-    Transaction tx(1, "0xA6C077fd9283421C657EcEa8a9c1422cc6CEbc80", 1000000000000000000, 21000);
+    Transaction tx("0xA6C077fd9283421C657EcEa8a9c1422cc6CEbc80", 1000000000000000000, 21000);
+    tx.nonce = 1;
     std::string unsigned_hash = tx.hash();
     std::string correct_hash = "0xf81a17092cfb066efa3ff6ef92016adc06ff66a64327359c4003d215d56128b3";
     REQUIRE(unsigned_hash == correct_hash);
@@ -71,7 +73,26 @@ TEST_CASE( "Hashes an unsigned transaction correctly", "[transaction]" ) {
 TEST_CASE( "Signs an unsigned transaction correctly", "[transaction]" ) {
     std::vector<unsigned char> seckey = utils::fromHexString(std::string(PRIVATE_KEY));
     Signer signer;
-    Transaction tx(1, "0xA6C077fd9283421C657EcEa8a9c1422cc6CEbc80", 1000000000000000000, 21000);
+    Transaction tx("0xA6C077fd9283421C657EcEa8a9c1422cc6CEbc80", 1000000000000000000, 21000);
+    tx.nonce = 1;
     const auto signature_hex_string = signer.signTransaction(tx, seckey);
     REQUIRE( signature_hex_string == "0x02f86a0101808082520894a6c077fd9283421c657ecea8a9c1422cc6cebc80880de0b6b3a764000080c080a084987299f8dd115333356ab03430ca8de593e03ba03d4ecd72daf15205119cf8a0216c9869da3497ae96dcb98713908af1a0abf866c12d51def821caf0374cccbb" );
+}
+
+TEST_CASE( "Does a self transfer on Sepolia", "[transaction]" ) {
+    const auto& config = ethbls::get_config(ethbls::network_type::SEPOLIA);
+    auto provider = std::make_shared<Provider>("Sepolia Client", std::string(config.RPC_URL));
+    Signer signer(provider);
+
+    Transaction tx("0x2Ccb8b65024E4aA9615a8E704DFb11BE76674f1F", 100000000000000, 21000);
+    tx.chainId = config.CHAIN_ID;
+    tx.nonce = provider->getTransactionCount("0x2Ccb8b65024E4aA9615a8E704DFb11BE76674f1F", "pending");
+    const auto feeData = provider->getFeeData();
+    tx.maxFeePerGas = feeData.maxFeePerGas;
+    tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
+    std::cout << "Nonce: " << tx.nonce << '\n';
+    std::vector<unsigned char> seckey = utils::fromHexString(std::string(PRIVATE_KEY));
+    const auto signature_hex_string = signer.signTransaction(tx, seckey);
+    auto hash = provider->sendTransaction(tx);
+    std::cout << "Transaction Hash: " << hash << '\n';
 }

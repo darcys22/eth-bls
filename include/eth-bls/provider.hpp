@@ -38,9 +38,12 @@ public:
 
     void connectToNetwork();
     void disconnectFromNetwork();
-    void sendTransaction(const std::string& to, int amount);
-    cpr::Response sendTransaction(const Transaction& signedTx);
-    cpr::Response sendTransaction(const SenderTransactOpts& opts, const std::string& to, uint64_t value, const std::string& data = "");
+
+    uint64_t getTransactionCount(const std::string& address, const std::string& blockTag);
+    std::optional<uint64_t> getBlockHeightByTransactionHash(const std::string& transactionHash);
+
+    std::string sendTransaction(const Transaction& signedTx);
+    std::string sendUncheckedTransaction(const Transaction& signedTx);
     uint64_t getBalance(const std::string& address);
 
     FeeData getFeeData();

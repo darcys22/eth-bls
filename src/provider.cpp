@@ -36,6 +36,8 @@ cpr::Response Provider::makeJsonRpcRequest(const std::string& method, const nloh
     bodyJson["params"] = params;
     bodyJson["id"] = 1;
 
+    std::cout << "Request: " << bodyJson.dump() << '\n';
+
     cpr::Body body(bodyJson.dump());
 
     session.SetUrl(url);
@@ -45,42 +47,140 @@ cpr::Response Provider::makeJsonRpcRequest(const std::string& method, const nloh
     return session.Post();
 }
 
-// Sending transaction with SenderTransactOpts
-cpr::Response Provider::sendTransaction(const SenderTransactOpts& opts, const std::string& to, uint64_t value, const std::string& data) {
-    // Prepare the transaction parameters
+uint64_t Provider::getTransactionCount(const std::string& address, const std::string& blockTag) {
     nlohmann::json params = nlohmann::json::array();
-    nlohmann::json transaction;
-    transaction["from"] = opts.fromAddress;
-    transaction["to"] = to;
-    transaction["value"] = "0x" + std::to_string(value);  // Ethereum requires values to be passed as hex
-    if (!data.empty()) {
-        transaction["data"] = data;
-    }
-    params.push_back(transaction);
+    params.push_back(address);
+    params.push_back(blockTag);
 
-    // Send the transaction
-    return makeJsonRpcRequest("eth_sendTransaction", params);
+    // Make the request
+    cpr::Response response = makeJsonRpcRequest("eth_getTransactionCount", params);
+
+    if (response.status_code == 200) {
+        // Parse the response
+        nlohmann::json responseJson = nlohmann::json::parse(response.text);
+
+        // Check if the result field is present and not null
+        if (!responseJson["result"].is_null()) {
+            // Get the transaction count
+            std::string transactionCountHex = responseJson["result"];
+
+            // Convert the transaction count from hex to decimal
+            uint64_t transactionCount = std::stoull(transactionCountHex, nullptr, 16);
+
+            // Return the transaction count
+            return transactionCount;
+        }
+    }
+
+    // If we couldn't get the transaction count, throw an exception
+    throw std::runtime_error("Unable to get transaction count");
 }
 
-// Sending signed transaction
-cpr::Response Provider::sendTransaction(const Transaction& signedTx) {
-    // Create and send a raw transaction
+std::optional<uint64_t> Provider::getBlockHeightByTransactionHash(const std::string& transactionHash) {
     nlohmann::json params = nlohmann::json::array();
+    params.push_back(transactionHash);
+
+    // Make the request
+    cpr::Response response = makeJsonRpcRequest("eth_getTransactionByHash", params);
+
+    if (response.status_code == 200) {
+        // Parse the response
+        nlohmann::json responseJson = nlohmann::json::parse(response.text);
+
+        if (responseJson.find("error") != responseJson.end())
+            throw std::runtime_error("Error getting transaction: " + responseJson["error"]["message"].get<std::string>());
+
+        if (!responseJson["result"].is_null()) {
+            std::cout << "Transaction: " << responseJson["result"] << '\n';
+        }
+
+        // Check if the result field is present and not null
+        if (!responseJson["result"].is_null() && !responseJson["result"]["blockNumber"].is_null()) {
+            // Get the block number
+            std::string blockNumberHex = responseJson["result"]["blockNumber"];
+
+            // Convert the block number from hex to decimal
+            uint64_t blockNumber = std::stoull(blockNumberHex, nullptr, 16);
+
+            // Return the block number
+            return blockNumber;
+        }
+    }
+
+    // If we couldn't get the block number, return an empty optional
+    return std::nullopt;
+}
+
+//cpr::Response Provider::sendTransaction(const SenderTransactOpts& opts, const std::string& to, uint64_t value, const std::string& data) {
+std::string Provider::sendTransaction(const Transaction& signedTx) {
+    std::string hash = sendUncheckedTransaction(signedTx);
+
+    // Construct a future to handle the transaction
+    std::future<std::string> futureTx = std::async(std::launch::async, [&]() -> std::string {
+        std::vector<int> timeouts = { 4000, 100, 1000 };
+
+        while(true) {
+            // Try getting the transaction
+            const auto maybe_tx_height = getBlockHeightByTransactionHash(hash);
+
+            // If transaction is received, resolve the promise
+            if(maybe_tx_height) {
+                return hash;
+            }
+
+            // If no timeouts are left, throw an exception
+            if(timeouts.empty()) {
+                throw std::runtime_error("Transaction request timed out");
+            }
+
+            // Wait for the next timeout period
+            std::this_thread::sleep_for(std::chrono::milliseconds(timeouts.back()));
+            timeouts.pop_back();
+        }
+    });
+
+    //try {
+        //// Wait for the transaction to be received or for an exception to be thrown
+        //return futureTx.get();
+    //} catch(const std::exception& e) {
+        //throw std::runtime_error("An error occurred while requesting the transaction");
+    //}
+    //return "";
+    return futureTx.get();
+}
+
+// Create and send a raw transaction returns the hash without checking if it succeeded in getting into a block
+std::string Provider::sendUncheckedTransaction(const Transaction& signedTx) {
+    nlohmann::json params = nlohmann::json::array();
+
     params.push_back(signedTx.serialized());  // Assuming Transaction::raw() returns the raw, signed transaction as hex
-    return makeJsonRpcRequest("eth_sendRawTransaction", params);
+    
+    std::cout << signedTx.serialized() << '\n';
+    return "";
+    auto response = makeJsonRpcRequest("eth_sendRawTransaction", params);
+    if (response.status_code == 200) {
+        nlohmann::json responseJson = nlohmann::json::parse(response.text);
+
+        if (responseJson.find("error") != responseJson.end())
+            throw std::runtime_error("Error sending transaction: " + responseJson["error"]["message"].get<std::string>());
+
+        std::string hash = responseJson["result"].get<std::string>();
+        std::cout << "Hash: " << hash << '\n';
+
+        return hash;
+    } else {
+        throw std::runtime_error("Failed to send transaction");
+    }
 }
 
 uint64_t Provider::getBalance(const std::string& address) {
-    std::cout << "something" << '\n';
     nlohmann::json params = nlohmann::json::array();
     params.push_back(address);
     params.push_back("latest");
 
-    std::cout << "something" << '\n';
     auto response = makeJsonRpcRequest("eth_getBalance", params);
     if (response.status_code == 200) {
         nlohmann::json responseJson = nlohmann::json::parse(response.text);
-        std::cout << "something" << '\n';
 
         if (responseJson.find("error") != responseJson.end())
             throw std::runtime_error("Error getting balance: " + responseJson["error"]["message"].get<std::string>());
@@ -94,12 +194,13 @@ uint64_t Provider::getBalance(const std::string& address) {
     } else {
         throw std::runtime_error("Failed to get balance for address " + address);
     }
-    std::cout << "something" << '\n';
 }
 
 FeeData Provider::getFeeData() {
     // Get latest block
     nlohmann::json params = nlohmann::json::array();
+    params.push_back("latest");
+    params.push_back(true);
     auto blockResponse = makeJsonRpcRequest("eth_getBlockByNumber", params);
     if (blockResponse.status_code != 200) {
         throw std::runtime_error("Failed to get the latest block");
