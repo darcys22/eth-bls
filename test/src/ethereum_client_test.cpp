@@ -32,9 +32,9 @@ TEST_CASE( "SigningTest", "[signer]" ) {
     std::vector<unsigned char> seckey = utils::fromHexString(std::string(PRIVATE_KEY));
     Signer signer;
     std::string hash_hello_world = utils::toHexString(utils::hash("Hello World!\n"));
-    const auto signature_bytes = signer.sign("Hello World!", seckey);
+    const auto signature_bytes = signer.signMessage("Hello World!", seckey);
     std::string signature_hex = utils::toHexString(signature_bytes);
-    REQUIRE( signature_hex == "35f409302082e02b5126c82be93a3946d30e93722ce3ff87bdb01fc385fe312054f3fade7fab80dcabadabf96af75577327dfd064abd47a36543a475e04840e71c" );
+    REQUIRE( signature_hex == "35f409302082e02b5126c82be93a3946d30e93722ce3ff87bdb01fc385fe312054f3fade7fab80dcabadabf96af75577327dfd064abd47a36543a475e04840e701" );
 }
 
 
@@ -65,5 +65,15 @@ TEST_CASE( "Hashes an unsigned transaction correctly", "[transaction]" ) {
     Transaction tx(1, "0xA6C077fd9283421C657EcEa8a9c1422cc6CEbc80", 1000000000000000000, 21000);
     std::string unsigned_hash = tx.hash();
     std::string correct_hash = "0xf81a17092cfb066efa3ff6ef92016adc06ff66a64327359c4003d215d56128b3";
+    std::cout << "Hash: " << unsigned_hash << '\n';
+    std::cout << "Should be: " << correct_hash << '\n';
     REQUIRE(unsigned_hash == correct_hash);
+}
+
+TEST_CASE( "Signs an unsigned transaction correctly", "[transaction]" ) {
+    std::vector<unsigned char> seckey = utils::fromHexString(std::string(PRIVATE_KEY));
+    Signer signer;
+    Transaction tx(1, "0xA6C077fd9283421C657EcEa8a9c1422cc6CEbc80", 1000000000000000000, 21000);
+    const auto signature_hex_string = signer.signTransaction(tx, seckey);
+    REQUIRE( signature_hex_string == "0x02f86a0101808082520894a6c077fd9283421c657ecea8a9c1422cc6cebc80880de0b6b3a764000080c080a084987299f8dd115333356ab03430ca8de593e03ba03d4ecd72daf15205119cf8a0216c9869da3497ae96dcb98713908af1a0abf866c12d51def821caf0374cccbb" );
 }

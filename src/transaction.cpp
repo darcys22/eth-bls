@@ -13,33 +13,6 @@
 * For an unsigned tx this method uses the empty Bytes values for the
 * signature parameters `v`, `r` and `s` for encoding.
 */
-//std::vector<unsigned char> Transaction::raw() const {
-    //std::vector<unsigned char> rawBytes;
-    
-    //auto appendBytes = [&rawBytes](const std::vector<unsigned char>& bytes) {
-        //rawBytes.insert(rawBytes.end(), bytes.begin(), bytes.end());
-    //};
-
-    //auto appendString = [&rawBytes](const std::string& str) {
-        //rawBytes.insert(rawBytes.end(), str.begin(), str.end());
-    //};
-    
-    //appendBytes(utils::intToBytes(chainId));
-    //appendBytes(utils::intToBytes(nonce));
-    //appendBytes(utils::intToBytes(maxPriorityFeePerGas));
-    //appendBytes(utils::intToBytes(maxFeePerGas));
-    //appendBytes(utils::intToBytes(gasLimit));
-    //appendString(to);
-    //appendBytes(utils::intToBytes(value));
-    //appendString(data);
-    // AccessList -> not going to use but would be here
-    //appendBytes(signatureYParity != 0 ? utils::intToBytes(signatureYParity) : std::vector<unsigned char>());
-    //appendBytes(signatureR.empty() ? std::vector<unsigned char>() : signatureR);
-    //appendBytes(signatureS.empty() ? std::vector<unsigned char>() : signatureS);
-
-    //return rawBytes;
-//}
-
 std::string Transaction::serialized() const {
     RLPValue arr(RLPValue::VARR);
     arr.setArray();
@@ -67,12 +40,12 @@ std::string Transaction::serialized() const {
     access_list.setArray();
     arr.push_back(access_list);
 
-    if (transaction_signed) {
-        temp_val.assign(utils::intToBytes(signatureYParity));
+    if (!sig.isEmpty()) {
+        temp_val.assign(utils::intToBytes(sig.signatureYParity));
         arr.push_back(temp_val);
-        temp_val.assign(signatureR);
+        temp_val.assign(sig.signatureR);
         arr.push_back(temp_val);
-        temp_val.assign(signatureS);
+        temp_val.assign(sig.signatureS);
         arr.push_back(temp_val);
     }
     return "0x02" + utils::toHexString(arr.write());
@@ -80,4 +53,29 @@ std::string Transaction::serialized() const {
 
 std::string Transaction::hash() const {
     return "0x" + utils::toHexString(utils::hash(serialized()));
+}
+
+bool Signature::isEmpty() const {
+    return signatureYParity == 0 && signatureR.empty() && signatureS.empty();
+};
+
+void Signature::fromHex(std::string hex_str) {
+
+    // Check for "0x" prefix and remove it
+    if(hex_str.size() >= 2 && hex_str[0] == '0' && hex_str[1] == 'x') {
+        hex_str = hex_str.substr(2);
+    }
+
+    if(hex_str.size() != 130) {
+        throw std::invalid_argument("Input string length should be 130 characters for 65 bytes");
+    }
+
+    // Each byte is represented by 2 characters, so multiply indices by 2
+    std::string r_str = hex_str.substr(0, 64);
+    std::string s_str = hex_str.substr(64, 64);
+    std::string y_parity_str = hex_str.substr(128, 2);
+
+    signatureR = utils::fromHexString(r_str);
+    signatureS = utils::fromHexString(s_str);
+    signatureYParity = std::stoull(y_parity_str, nullptr, 16);
 }

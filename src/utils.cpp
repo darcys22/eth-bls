@@ -23,6 +23,19 @@ std::vector<unsigned char> utils::fromHexString(std::string hex_str) {
     return bytes;
 }
 
+std::array<unsigned char, 32> utils::fromHexString32Byte(std::string hex_str) {
+    std::vector<unsigned char> bytesVec = fromHexString(hex_str);
+
+    if(bytesVec.size() != 32) {
+        throw std::invalid_argument("Input string length should be 64 characters for 32 bytes");
+    }
+
+    std::array<unsigned char, 32> bytesArr;
+    std::copy(bytesVec.begin(), bytesVec.end(), bytesArr.begin());
+
+    return bytesArr;
+}
+
 std::array<unsigned char, 32> utils::hash(std::string in) {
     std::vector<unsigned char> bytes;
 

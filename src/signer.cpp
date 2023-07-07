@@ -6,6 +6,7 @@
 
 #include "eth-bls/ecdsa_util.h"
 #include "eth-bls/utils.hpp"
+#include "eth-bls/transaction.hpp"
 
 #include <secp256k1_recovery.h>
 
@@ -59,16 +60,14 @@ std::pair<std::vector<unsigned char>, std::vector<unsigned char>> Signer::genera
             std::vector<unsigned char>(compressed_pubkey, compressed_pubkey + sizeof(compressed_pubkey))};
 }
 
-std::vector<unsigned char> Signer::sign(const std::string& message, const std::vector<unsigned char>& seckey) {
+
+std::vector<unsigned char> Signer::sign(const std::array<unsigned char, 32>& hash, const std::vector<unsigned char>& seckey) {
     secp256k1_ecdsa_recoverable_signature sig;
     unsigned char serialized_signature[64];
     int recid;
     int return_val;
 
-    // Hash the message
-    std::array<unsigned char, 32> msg_hash = utils::hash(message);
-
-    return_val = secp256k1_ecdsa_sign_recoverable(ctx, &sig, msg_hash.data(), seckey.data(), NULL, NULL);
+    return_val = secp256k1_ecdsa_sign_recoverable(ctx, &sig, hash.data(), seckey.data(), NULL, NULL);
     assert(return_val);
 
     return_val = secp256k1_ecdsa_recoverable_signature_serialize_compact(ctx, serialized_signature, &recid, &sig);
@@ -77,7 +76,6 @@ std::vector<unsigned char> Signer::sign(const std::string& message, const std::v
     // Create a vector and fill it with the serialized signature
     std::vector<unsigned char> signature(serialized_signature, serialized_signature + sizeof(serialized_signature));
 
-    // Append the recid +27 to the end of the vector, this appears to be an ethereum thing. Pulled possibly from bitcoin originally
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
     // TODO sean it looks like the EIP modifys how this is done in new ones from that EIP
     //
@@ -86,9 +84,13 @@ std::vector<unsigned char> Signer::sign(const std::string& message, const std::v
     // instead of hashing six rlp encoded elements (nonce, gasprice, startgas, to, value, data),
     // hash nine rlp encoded elements (nonce, gasprice, startgas, to, value, data, chainid, 0, 0).
     // The currently existing signature scheme using v = 27 and v = 28 remains valid and continues to operate under the same rules as it did previously.
-    signature.push_back(static_cast<unsigned char>(recid + 27));
+    signature.push_back(static_cast<unsigned char>(recid));
 
     return signature;
+}
+
+std::vector<unsigned char> Signer::sign(const std::string& hash, const std::vector<unsigned char>& seckey) {
+    return sign(utils::fromHexString32Byte(hash), seckey);
 }
 
 void Signer::populateTransaction(Transaction& tx, const SenderTransactOpts& opts) {
@@ -128,4 +130,17 @@ void Signer::populateTransaction(Transaction& tx, const SenderTransactOpts& opts
     //if (tx.maxPriorityFeePerGas == 0) {
         //tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
     //}
+}
+
+// Hash the message and sign
+std::vector<unsigned char> Signer::signMessage(const std::string& message, const std::vector<unsigned char>& seckey) {
+    return sign(utils::hash(message), seckey);
+}
+
+// Hash the transaction and sign
+std::string Signer::signTransaction(Transaction& txn, const std::vector<unsigned char>& seckey) {
+    const auto signature_hex = utils::toHexString(sign(txn.hash(), seckey));
+    txn.sig.fromHex(signature_hex);
+
+    return txn.serialized();
 }

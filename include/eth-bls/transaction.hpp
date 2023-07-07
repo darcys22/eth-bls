@@ -3,6 +3,18 @@
 #include <string>
 #include <vector>
 
+#include "eth-bls/utils.hpp"
+
+struct Signature {
+    uint64_t signatureYParity = 0;
+    std::vector<unsigned char> signatureR = {};
+    std::vector<unsigned char> signatureS = {};
+
+    bool isEmpty() const;
+
+    void fromHex(std::string hex_str);
+};
+
 class Transaction {
 public:
     uint64_t chainId;
@@ -13,11 +25,7 @@ public:
     uint64_t value;     
     uint64_t gasLimit;
     std::string data;
-    uint64_t signatureYParity;
-    std::vector<unsigned char> signatureR;
-    std::vector<unsigned char> signatureS;
-
-    bool transaction_signed = false;
+    Signature sig;
 
     // Constructor                                                                                                        
     // (nonce, toAddress, value, gasLimit, gasPrice, nil)

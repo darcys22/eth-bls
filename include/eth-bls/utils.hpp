@@ -18,10 +18,14 @@ namespace utils
         return oss.str();                                                                                                     
     }
 
+
     std::vector<unsigned char> fromHexString(std::string hex_str);
+
+    std::array<unsigned char, 32> fromHexString32Byte(std::string hex_str);
 
     std::array<unsigned char, 32> hash(std::string in);
 
     std::vector<unsigned char> intToBytes(uint64_t num);
+
 // END
 }

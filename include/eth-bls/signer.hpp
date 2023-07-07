@@ -25,13 +25,17 @@ public:
     // Returns <Pubkey, Seckey>
     std::pair<std::vector<unsigned char>, std::vector<unsigned char>> generate_key_pair();
 
-    std::vector<unsigned char> sign(const std::string& message, const std::vector<unsigned char>& seckey);
+    std::vector<unsigned char> sign(const std::array<unsigned char, 32>& hash, const std::vector<unsigned char>& seckey);
+    std::vector<unsigned char> sign(const std::string& hash, const std::vector<unsigned char>& seckey);
 
     // Client usage methods
     bool hasClient() const { return static_cast<bool>(ethClient); }
     std::shared_ptr<EthereumClient> getClient() { return ethClient; }
 
     void populateTransaction(Transaction& tx, const SenderTransactOpts& opts);
+
+    std::vector<unsigned char> signMessage(const std::string& message, const std::vector<unsigned char>& seckey);
+    std::string signTransaction(Transaction& tx, const std::vector<unsigned char>& seckey);
 
 
 private:
