@@ -57,11 +57,14 @@ inline constexpr auto DATA_DIRNAME =
 #endif
 inline constexpr auto DATA_FILENAME = "sqlite.db"sv;
 
-enum class network_type : uint8_t { ARBITRUM = 0, UNDEFINED = 255 };
+enum class network_type : uint8_t { ARBITRUM = 0, SEPOLIA = 1, UNDEFINED = 255 };
 
 constexpr network_type network_type_from_string(std::string_view s) {
     if (s == "arbitrum")
         return network_type::ARBITRUM;
+
+    if (s == "sepolia")
+        return network_type::SEPOLIA;
 
     return network_type::UNDEFINED;
 }
@@ -69,6 +72,7 @@ constexpr network_type network_type_from_string(std::string_view s) {
 constexpr std::string_view network_type_to_string(network_type t) {
     switch (t) {
         case network_type::ARBITRUM: return "arbitrum";
+        case network_type::SEPOLIA: return "sepolia";
         default: return "undefined";
     }
     return "undefined";
@@ -82,6 +86,12 @@ namespace config {
         inline constexpr std::string_view BLOCK_EXPLORER_URL = "https://arbiscan.io";
         inline constexpr std::string_view OFFICIAL_WEBSITE = "https://portal.arbitrum.one";
     }  // namespace arbitrum
+    namespace sepolia {
+        inline constexpr std::string_view RPC_URL = "https://rpc.sepolia.dev";
+        inline constexpr uint32_t CHAIN_ID = 11155111;
+        inline constexpr std::string_view BLOCK_EXPLORER_URL = "https://sepolia.etherscan.io/";
+        inline constexpr std::string_view OFFICIAL_WEBSITE = "https://sepolia.dev/";
+    }  // namespace sepolia 
 }  // namespace config
 
 struct network_config {
@@ -98,9 +108,17 @@ inline constexpr network_config arbitrum_config{
         config::arbitrum::OFFICIAL_WEBSITE,
 };
 
+inline constexpr network_config sepolia_config{
+        config::sepolia::RPC_URL,
+        config::sepolia::CHAIN_ID,
+        config::sepolia::BLOCK_EXPLORER_URL,
+        config::sepolia::OFFICIAL_WEBSITE,
+};
+
 inline constexpr const network_config& get_config(network_type nettype) {
     switch (nettype) {
         case network_type::ARBITRUM: return arbitrum_config;
+        case network_type::SEPOLIA: return sepolia_config;
         default: throw std::runtime_error{"Invalid network type"};
     }
 }
