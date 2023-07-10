@@ -178,6 +178,8 @@ target_link_libraries(
     cncrypto
     secp256k1
     rlpvalue
+    bls::bls256
+    mcl::mclbn256
   PRIVATE
     nlohmann_json::nlohmann_json
     #${PROJECT_NAME}_PROJECT_OPTIONS

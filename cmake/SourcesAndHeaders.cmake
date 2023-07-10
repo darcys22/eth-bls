@@ -25,4 +25,5 @@ set(test_sources
   src/tmp_test.cpp
   src/ethereum_client_test.cpp
   src/rlp_test.cpp
+  src/bls_test.cpp
 )
