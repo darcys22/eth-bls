@@ -23,3 +23,17 @@ make -j16
 cd build          # if not in the build directory already
 make test
 ```
+
+## Deploy contract
+In the hardhat folder you can call 
+```
+make deploy
+```
+
+which will deploy a contract to the sepolia network for BLS Validators. It will save an artifact of the contracts address to
+./hardhat/artifacts/BLS.address
+
+this is currently
+```
+0x2fA6c9E34e19851879d502894faAe04D3E007Ae9
+```
