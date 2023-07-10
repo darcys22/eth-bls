@@ -95,7 +95,6 @@ TEST_CASE( "Does a self transfer on Sepolia", "[transaction]" ) {
     const auto& config = ethbls::get_config(ethbls::network_type::SEPOLIA);
     auto provider = std::make_shared<Provider>("Sepolia Client", std::string(config.RPC_URL));
     Signer signer(provider);
-
     Transaction tx(std::string(ADDRESS), 100000000000000, 21000);
     tx.chainId = config.CHAIN_ID;
     tx.nonce = provider->getTransactionCount(std::string(ADDRESS), "pending");
@@ -112,11 +111,8 @@ TEST_CASE( "Does a self transfer on Sepolia using signer to populate", "[transac
     const auto& config = ethbls::get_config(ethbls::network_type::SEPOLIA);
     auto provider = std::make_shared<Provider>("Sepolia Client", std::string(config.RPC_URL));
     Signer signer(provider);
-
     Transaction tx("0x2Ccb8b65024E4aA9615a8E704DFb11BE76674f1F", 100000000000000, 21000);
     std::vector<unsigned char> seckey = utils::fromHexString(std::string(PRIVATE_KEY));
     const auto hash = signer.sendTransaction(tx, seckey);
-
-    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - transaction hash: " << hash << " - debug\n";
     REQUIRE(hash != "");
 }
