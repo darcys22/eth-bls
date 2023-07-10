@@ -18,7 +18,6 @@ namespace utils
         return oss.str();                                                                                                     
     }
 
-
     std::vector<unsigned char> fromHexString(std::string hex_str);
 
     std::array<unsigned char, 32> fromHexString32Byte(std::string hex_str);
