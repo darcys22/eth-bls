@@ -4,6 +4,7 @@ set(sources
     src/provider.cpp
     src/signer.cpp
     src/transaction.cpp
+    src/service_node_list.cpp
 )
 
 set(exe_sources
@@ -18,6 +19,7 @@ set(headers
     include/eth-bls/provider.hpp
     include/eth-bls/signer.hpp
     include/eth-bls/transaction.hpp
+    include/eth-bls/service_node_list.hpp
     include/eth-bls/ecdsa_util.h
 )
 
@@ -26,4 +28,5 @@ set(test_sources
   src/ethereum_client_test.cpp
   src/rlp_test.cpp
   src/bls_test.cpp
+  src/service_node_list_test.cpp
 )

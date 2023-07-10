@@ -1,8 +1,6 @@
 #define MCLBN_FP_UNIT_SIZE 4
 #include <bls/bls.hpp>
 
-#include <iostream>
-
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_all.hpp>
 
