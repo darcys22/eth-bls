@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <array>
 #include <stdexcept>
+#include <iostream>
 
 #include "eth-bls/ecdsa_util.h"
 #include "eth-bls/utils.hpp"
@@ -60,6 +61,36 @@ std::pair<std::vector<unsigned char>, std::vector<unsigned char>> Signer::genera
             std::vector<unsigned char>(compressed_pubkey, compressed_pubkey + sizeof(compressed_pubkey))};
 }
 
+std::string Signer::addressFromPrivateKey(const std::vector<unsigned char>& seckey) {
+    std::string address;
+
+    // Verify the private key.
+    if (!secp256k1_ec_seckey_verify(ctx, seckey.data())) {
+        throw std::runtime_error("Failed to verify secret key");
+    }
+
+    // Compute the public key.
+    secp256k1_pubkey pubkey;
+    if (!secp256k1_ec_pubkey_create(ctx, &pubkey, seckey.data())) {
+        throw std::runtime_error("Failed to create public key");
+    }
+
+    // Serialize the public key in uncompressed form.
+    std::vector<unsigned char> pub(65);
+    size_t pub_len = 65;
+    secp256k1_ec_pubkey_serialize(ctx, pub.data(), &pub_len, &pubkey, SECP256K1_EC_UNCOMPRESSED);
+
+    // Skip the type byte.
+    std::string pub_string(pub.begin() + 1, pub.end());
+    auto hashed_pub = utils::hash(pub_string);
+
+    // The last 20 bytes of the Keccak-256 hash of the public key in hex is the address.
+    address = utils::toHexString(hashed_pub);
+    address = address.substr(address.size() - 40);
+
+    return "0x" + address;
+}
+
 
 std::vector<unsigned char> Signer::sign(const std::array<unsigned char, 32>& hash, const std::vector<unsigned char>& seckey) {
     secp256k1_ecdsa_recoverable_signature sig;
@@ -93,43 +124,40 @@ std::vector<unsigned char> Signer::sign(const std::string& hash, const std::vect
     return sign(utils::fromHexString32Byte(hash), seckey);
 }
 
-void Signer::populateTransaction(Transaction& tx, const SenderTransactOpts& opts) {
+void Signer::populateTransaction(Transaction& tx, std::string sender_address) {
     // Check if the signer has a client
     if (!hasProvider()) {
         throw std::runtime_error("Signer does not have a provider");
     }
-    
-    // Populate the transaction with SenderTransactOpts parameters
-    //tx.chainId = opts.chainID;
-    //if (opts.gasPrice > 0 && tx.gasPrice == 0)
-        //tx.gasPrice = opts.gasPrice;
-    
-    // TODO sean do these
+
     // If nonce is not set, get it from the network
-    //if (tx.nonce == 0) {
-        //tx.nonce = ethClient->getNonce("pending");
-    //}
+    if (tx.nonce == 0) {
+        tx.nonce = provider->getTransactionCount(sender_address, "pending");
+    }
 
     // Get network's chain ID
-    //uint64_t networkChainId = ethClient->getNetworkChainId();
+    uint32_t networkChainId = provider->getNetworkChainId();
 
     // Check and set chainId
-    //if (tx.chainId != 0) {
-        //assert(tx.chainId == networkChainId); // Ensure chainId matches network's chainId
-    //} else {
-        //tx.chainId = networkChainId;
-    //}
+    if (tx.chainId != 0) {
+        if (tx.chainId != networkChainId) {
+            throw std::runtime_error("Chain ID on transaction does not match providers Chain ID");
+        }
+    } else {
+        tx.chainId = networkChainId;
+    }
 
     // Get fee data
-    //FeeData feeData = ethClient->getFeeData();
+    const auto feeData = provider->getFeeData();
+    tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
 
-    //if (tx.maxFeePerGas == 0) {
-        //tx.maxFeePerGas = feeData.maxFeePerGas;
-    //}
+    if (tx.maxFeePerGas == 0) {
+        tx.maxFeePerGas = feeData.maxFeePerGas;
+    }
 
-    //if (tx.maxPriorityFeePerGas == 0) {
-        //tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
-    //}
+    if (tx.maxPriorityFeePerGas == 0) {
+        tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
+    }
 }
 
 // Hash the message and sign
@@ -143,4 +171,15 @@ std::string Signer::signTransaction(Transaction& txn, const std::vector<unsigned
     txn.sig.fromHex(signature_hex);
 
     return txn.serialized();
+}
+
+// Populates the txn, signs and sends
+std::string Signer::sendTransaction(Transaction& txn, const std::vector<unsigned char>& seckey) {
+    const auto senders_address = addressFromPrivateKey(seckey);
+
+    populateTransaction(txn, senders_address);
+    const auto signature_hex = utils::toHexString(sign(txn.hash(), seckey));
+    txn.sig.fromHex(signature_hex);
+    const auto hash = provider->sendTransaction(txn);
+    return hash;
 }

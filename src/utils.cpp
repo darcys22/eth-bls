@@ -1,7 +1,5 @@
 #include "eth-bls/utils.hpp"
 
-#include <algorithm>
-
 extern "C" {
 #include "crypto/keccak.h"
 }
@@ -66,7 +64,5 @@ std::vector<unsigned char> utils::intToBytes(uint64_t num) {
         result[i / 2] = byte;
     }
 
-    // TODO sean if this isnt used remove algorithm header
-    //std::reverse(result.begin(), result.end());
     return result;
 }

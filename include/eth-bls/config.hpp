@@ -57,7 +57,7 @@ inline constexpr auto DATA_DIRNAME =
 #endif
 inline constexpr auto DATA_FILENAME = "sqlite.db"sv;
 
-enum class network_type : uint8_t { ARBITRUM = 0, SEPOLIA = 1, UNDEFINED = 255 };
+enum class network_type : uint8_t { ARBITRUM = 0, SEPOLIA = 1, GANACHE = 2, UNDEFINED = 255 };
 
 constexpr network_type network_type_from_string(std::string_view s) {
     if (s == "arbitrum")
@@ -66,6 +66,9 @@ constexpr network_type network_type_from_string(std::string_view s) {
     if (s == "sepolia")
         return network_type::SEPOLIA;
 
+    if (s == "ganache")
+        return network_type::GANACHE;
+
     return network_type::UNDEFINED;
 }
 
@@ -73,6 +76,7 @@ constexpr std::string_view network_type_to_string(network_type t) {
     switch (t) {
         case network_type::ARBITRUM: return "arbitrum";
         case network_type::SEPOLIA: return "sepolia";
+        case network_type::GANACHE: return "ganache";
         default: return "undefined";
     }
     return "undefined";
@@ -91,6 +95,12 @@ namespace config {
         inline constexpr uint32_t CHAIN_ID = 11155111;
         inline constexpr std::string_view BLOCK_EXPLORER_URL = "https://sepolia.etherscan.io/";
         inline constexpr std::string_view OFFICIAL_WEBSITE = "https://sepolia.dev/";
+    }  // namespace sepolia 
+    namespace ganache {
+        inline constexpr std::string_view RPC_URL = "127.0.0.1:8545";
+        inline constexpr uint32_t CHAIN_ID = 1337;
+        inline constexpr std::string_view BLOCK_EXPLORER_URL = "";
+        inline constexpr std::string_view OFFICIAL_WEBSITE = "";
     }  // namespace sepolia 
 }  // namespace config
 
@@ -115,10 +125,18 @@ inline constexpr network_config sepolia_config{
         config::sepolia::OFFICIAL_WEBSITE,
 };
 
+inline constexpr network_config ganache_config{
+        config::ganache::RPC_URL,
+        config::ganache::CHAIN_ID,
+        config::ganache::BLOCK_EXPLORER_URL,
+        config::ganache::OFFICIAL_WEBSITE,
+};
+
 inline constexpr const network_config& get_config(network_type nettype) {
     switch (nettype) {
         case network_type::ARBITRUM: return arbitrum_config;
         case network_type::SEPOLIA: return sepolia_config;
+        case network_type::GANACHE: return ganache_config;
         default: throw std::runtime_error{"Invalid network type"};
     }
 }

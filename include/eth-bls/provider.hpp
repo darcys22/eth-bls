@@ -7,18 +7,6 @@
 
 #include "transaction.hpp"
 
-class SenderTransactOpts {
-public:
-    std::string privateKey;
-    std::string fromAddress;
-    uint64_t chainID;
-    uint64_t gasPrice;
-
-    // Constructor
-    SenderTransactOpts(const std::string& _privateKey, const std::string& _fromAddress, uint64_t _chainID, uint64_t _gasPrice)
-        : privateKey(_privateKey), fromAddress(_fromAddress), chainID(_chainID), gasPrice(_gasPrice) {}
-};
-
 struct FeeData {
     uint64_t gasPrice;
     uint64_t maxFeePerGas;
@@ -40,7 +28,8 @@ public:
     void disconnectFromNetwork();
 
     uint64_t getTransactionCount(const std::string& address, const std::string& blockTag);
-    std::optional<uint64_t> getBlockHeightByTransactionHash(const std::string& transactionHash);
+    uint32_t getNetworkChainId();
+    std::optional<nlohmann::json> getTransactionByHash(const std::string& transactionHash);
 
     std::string sendTransaction(const Transaction& signedTx);
     std::string sendUncheckedTransaction(const Transaction& signedTx);

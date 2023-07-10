@@ -36,8 +36,6 @@ cpr::Response Provider::makeJsonRpcRequest(const std::string& method, const nloh
     bodyJson["params"] = params;
     bodyJson["id"] = 1;
 
-    std::cout << "Request: " << bodyJson.dump() << '\n';
-
     cpr::Body body(bodyJson.dump());
 
     session.SetUrl(url);
@@ -45,6 +43,31 @@ cpr::Response Provider::makeJsonRpcRequest(const std::string& method, const nloh
     session.SetHeader({{"Content-Type", "application/json"}});
 
     return session.Post();
+}
+
+uint32_t Provider::getNetworkChainId() {
+    // Make the request takes no params
+    nlohmann::json params = nlohmann::json::array();
+    cpr::Response response = makeJsonRpcRequest("net_version", params);
+
+    if (response.status_code == 200) {
+        // Parse the response
+        nlohmann::json responseJson = nlohmann::json::parse(response.text);
+
+        // Check if the result field is present and not null, if it exists then it contains the network id as a string
+        if (!responseJson["result"].is_null()) {
+            std::string network_id_string = responseJson["result"];
+            uint64_t network_id = std::stoull(network_id_string, nullptr, 10);
+            if (network_id > std::numeric_limits<uint32_t>::max()) {
+                throw std::runtime_error("Network ID does not fit into 32 bit unsigned integer");
+            } else {
+                return static_cast<uint32_t>(network_id);
+            }
+        }
+    }
+
+    // If we couldn't get the network ID, throw an exception
+    throw std::runtime_error("Unable to get Network ID");
 }
 
 uint64_t Provider::getTransactionCount(const std::string& address, const std::string& blockTag) {
@@ -76,7 +99,7 @@ uint64_t Provider::getTransactionCount(const std::string& address, const std::st
     throw std::runtime_error("Unable to get transaction count");
 }
 
-std::optional<uint64_t> Provider::getBlockHeightByTransactionHash(const std::string& transactionHash) {
+std::optional<nlohmann::json> Provider::getTransactionByHash(const std::string& transactionHash) {
     nlohmann::json params = nlohmann::json::array();
     params.push_back(transactionHash);
 
@@ -90,20 +113,10 @@ std::optional<uint64_t> Provider::getBlockHeightByTransactionHash(const std::str
         if (responseJson.find("error") != responseJson.end())
             throw std::runtime_error("Error getting transaction: " + responseJson["error"]["message"].get<std::string>());
 
-        if (!responseJson["result"].is_null()) {
-            std::cout << "Transaction: " << responseJson["result"] << '\n';
-        }
-
         // Check if the result field is present and not null
-        if (!responseJson["result"].is_null() && !responseJson["result"]["blockNumber"].is_null()) {
-            // Get the block number
-            std::string blockNumberHex = responseJson["result"]["blockNumber"];
-
-            // Convert the block number from hex to decimal
-            uint64_t blockNumber = std::stoull(blockNumberHex, nullptr, 16);
-
+        if (!responseJson["result"].is_null()) {
             // Return the block number
-            return blockNumber;
+            return responseJson["result"];
         }
     }
 
@@ -121,10 +134,10 @@ std::string Provider::sendTransaction(const Transaction& signedTx) {
 
         while(true) {
             // Try getting the transaction
-            const auto maybe_tx_height = getBlockHeightByTransactionHash(hash);
+            const auto maybe_tx = getTransactionByHash(hash);
 
             // If transaction is received, resolve the promise
-            if(maybe_tx_height) {
+            if(maybe_tx) {
                 return hash;
             }
 
@@ -155,8 +168,6 @@ std::string Provider::sendUncheckedTransaction(const Transaction& signedTx) {
 
     params.push_back(signedTx.serialized());  // Assuming Transaction::raw() returns the raw, signed transaction as hex
     
-    std::cout << signedTx.serialized() << '\n';
-    return "";
     auto response = makeJsonRpcRequest("eth_sendRawTransaction", params);
     if (response.status_code == 200) {
         nlohmann::json responseJson = nlohmann::json::parse(response.text);
@@ -165,7 +176,6 @@ std::string Provider::sendUncheckedTransaction(const Transaction& signedTx) {
             throw std::runtime_error("Error sending transaction: " + responseJson["error"]["message"].get<std::string>());
 
         std::string hash = responseJson["result"].get<std::string>();
-        std::cout << "Hash: " << hash << '\n';
 
         return hash;
     } else {
@@ -218,7 +228,7 @@ FeeData Provider::getFeeData() {
     uint64_t gasPrice = std::stoull(gasPriceJson["result"].get<std::string>(), nullptr, 16);
 
     // Compute maxFeePerGas and maxPriorityFeePerGas based on baseFeePerGas
-    uint64_t maxPriorityFeePerGas = 1000000000;
+    uint64_t maxPriorityFeePerGas = 3000000000;
     uint64_t maxFeePerGas = (baseFeePerGas * 2) + maxPriorityFeePerGas;
 
     return FeeData(gasPrice, maxFeePerGas, maxPriorityFeePerGas);

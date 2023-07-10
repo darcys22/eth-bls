@@ -30,7 +30,7 @@ public:
     // Constructor                                                                                                        
     // (toAddress, value, gasLimit, data)
     Transaction(const std::string& _to , uint64_t _value , uint64_t _gasLimit = 21000, const std::string& _data = "") 
-        : chainId(1), nonce(0), maxPriorityFeePerGas(0), maxFeePerGas(0), to(_to), value(_value), gasLimit(_gasLimit), data(_data) {}
+        : chainId(0), nonce(0), maxPriorityFeePerGas(0), maxFeePerGas(0), to(_to), value(_value), gasLimit(_gasLimit), data(_data) {}
 
     std::string serialized() const;
     std::string hash() const;
