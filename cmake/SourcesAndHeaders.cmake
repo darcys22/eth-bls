@@ -5,6 +5,7 @@ set(sources
     src/signer.cpp
     src/transaction.cpp
     src/service_node_list.cpp
+    src/bls_validator_contract.cpp
 )
 
 set(exe_sources
@@ -20,6 +21,7 @@ set(headers
     include/eth-bls/signer.hpp
     include/eth-bls/transaction.hpp
     include/eth-bls/service_node_list.hpp
+    include/eth-bls/bls_validator_contract.hpp
     include/eth-bls/ecdsa_util.h
 )
 
@@ -29,4 +31,5 @@ set(test_sources
   src/rlp_test.cpp
   src/bls_test.cpp
   src/service_node_list_test.cpp
+  src/bls_validator_contract_test.cpp
 )
