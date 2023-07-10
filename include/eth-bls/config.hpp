@@ -43,20 +43,6 @@ using namespace std::literals;
 
 namespace ethbls {
 
-/// global related constants:
-
-inline constexpr uint64_t MAX_BLOCK_NUMBER = 500000000;
-inline constexpr std::string_view BULLETPROOF_EXPONENT = "bulletproof"sv;
-
-// filename constants:
-inline constexpr auto DATA_DIRNAME =
-#ifdef _WIN32
-        "eth-bls"sv;  // Buried in some windows filesystem maze location
-#else
-        ".eth-bls"sv;      // ~/.oxen
-#endif
-inline constexpr auto DATA_FILENAME = "sqlite.db"sv;
-
 enum class network_type : uint8_t { ARBITRUM = 0, SEPOLIA = 1, GANACHE = 2, UNDEFINED = 255 };
 
 constexpr network_type network_type_from_string(std::string_view s) {
@@ -89,18 +75,21 @@ namespace config {
         inline constexpr uint32_t CHAIN_ID = 42161;
         inline constexpr std::string_view BLOCK_EXPLORER_URL = "https://arbiscan.io";
         inline constexpr std::string_view OFFICIAL_WEBSITE = "https://portal.arbitrum.one";
+        inline constexpr std::string_view BLS_CONTRACT_ADDRESS = "";
     }  // namespace arbitrum
     namespace sepolia {
         inline constexpr std::string_view RPC_URL = "https://rpc.sepolia.org";
         inline constexpr uint32_t CHAIN_ID = 11155111;
         inline constexpr std::string_view BLOCK_EXPLORER_URL = "https://sepolia.etherscan.io/";
         inline constexpr std::string_view OFFICIAL_WEBSITE = "https://sepolia.dev/";
+        inline constexpr std::string_view BLS_CONTRACT_ADDRESS = "0x2fA6c9E34e19851879d502894faAe04D3E007Ae9";
     }  // namespace sepolia 
     namespace ganache {
         inline constexpr std::string_view RPC_URL = "127.0.0.1:8545";
         inline constexpr uint32_t CHAIN_ID = 1337;
         inline constexpr std::string_view BLOCK_EXPLORER_URL = "";
         inline constexpr std::string_view OFFICIAL_WEBSITE = "";
+        inline constexpr std::string_view BLS_CONTRACT_ADDRESS = "";
     }  // namespace sepolia 
 }  // namespace config
 
@@ -109,6 +98,7 @@ struct network_config {
     uint32_t CHAIN_ID;
     std::string_view BLOCK_EXPLORER_URL;
     std::string_view OFFICIAL_WEBSITE;
+    std::string_view BLS_CONTRACT_ADDRESS;
 };
 
 inline constexpr network_config arbitrum_config{
@@ -116,6 +106,7 @@ inline constexpr network_config arbitrum_config{
         config::arbitrum::CHAIN_ID,
         config::arbitrum::BLOCK_EXPLORER_URL,
         config::arbitrum::OFFICIAL_WEBSITE,
+        config::arbitrum::BLS_CONTRACT_ADDRESS,
 };
 
 inline constexpr network_config sepolia_config{
@@ -123,6 +114,7 @@ inline constexpr network_config sepolia_config{
         config::sepolia::CHAIN_ID,
         config::sepolia::BLOCK_EXPLORER_URL,
         config::sepolia::OFFICIAL_WEBSITE,
+        config::sepolia::BLS_CONTRACT_ADDRESS,
 };
 
 inline constexpr network_config ganache_config{
@@ -130,6 +122,7 @@ inline constexpr network_config ganache_config{
         config::ganache::CHAIN_ID,
         config::ganache::BLOCK_EXPLORER_URL,
         config::ganache::OFFICIAL_WEBSITE,
+        config::ganache::BLS_CONTRACT_ADDRESS,
 };
 
 inline constexpr const network_config& get_config(network_type nettype) {
