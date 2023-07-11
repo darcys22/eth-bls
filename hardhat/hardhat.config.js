@@ -32,6 +32,9 @@ module.exports = {
         chainId: 11155111,
         accounts,
     },
+    hardhat: {
+        chainId: 1337,
+    },
   },
 
 };

@@ -5,10 +5,8 @@ BLSValidatorsContract::BLSValidatorsContract(const std::string& _contractAddress
         : contractAddress(_contractAddress), provider(_provider) {}
 
 Transaction BLSValidatorsContract::addValidator(const std::string& publicKey) {
-    Transaction tx(contractAddress, 0, 60000);
-    //tx.data = encodeFunctionCall("addPublicKey", publicKey);
-
-    const uint64_t amount = 15000;  // Fix this amount
+    const uint64_t amount = 15000;
+    Transaction tx(contractAddress, 0, 150000);
 
     // Get the function selector
     std::string functionSelector = utils::getFunctionSignature("addValidator(uint256,uint256,uint256)");
