@@ -8,7 +8,7 @@
 class BLSValidatorsContract {
 public:
     // Constructor
-    BLSValidatorsContract(const std::string& contractAddress, std::shared_ptr<Provider> provider);
+    BLSValidatorsContract(const std::string& _contractAddress, std::shared_ptr<Provider> _provider);
 
     // Method for creating a transaction to add a public key
     Transaction addValidator(const std::string& publicKey);

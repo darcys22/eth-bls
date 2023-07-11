@@ -17,11 +17,18 @@ std::vector<unsigned char> seckey = utils::fromHexString(std::string(PRIVATE_KEY
      
 TEST_CASE( "Add Public Keys to contract", "[bls contract]" ) {
     ServiceNodeList snl(3);
-    for(auto& node : snl.nodes) {
-        const auto pubkey = node.getPublicKeyHex();
-        auto tx = bls_contract.addValidator(pubkey);
-        const auto hash = signer.sendTransaction(tx, seckey);
-        REQUIRE(hash != "");
-    }
+    const auto pubkey = snl.nodes[0].getPublicKeyHex();
+    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - Pubkey: " << pubkey << " - debug\n";
+    auto tx = bls_contract.addValidator(pubkey);
+    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - Data: " << tx.data << " - debug\n";
+    const auto hash = signer.sendTransaction(tx, seckey);
+    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - Hash: " << hash << " - debug\n";
+    REQUIRE(hash != "");
+    //for(auto& node : snl.nodes) {
+        //const auto pubkey = node.getPublicKeyHex();
+        //auto tx = bls_contract.addValidator(pubkey);
+        //const auto hash = signer.sendTransaction(tx, seckey);
+        //REQUIRE(hash != "");
+    //}
 }
 
