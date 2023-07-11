@@ -66,7 +66,7 @@ std::string utils::getFunctionSignature(const std::string& function) {
 }
 
 std::string utils::padTo32Bytes(const std::string& input, utils::PaddingDirection direction) {
-    constexpr size_t targetSize = 32;
+    constexpr size_t targetSize = 64;
     std::string output = input;
     bool has0xPrefix = false;
 
