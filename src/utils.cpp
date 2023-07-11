@@ -4,6 +4,12 @@ extern "C" {
 #include "crypto/keccak.h"
 }
 
+std::string utils::decimalToHex(uint64_t decimal) {
+    std::stringstream ss;
+    ss << std::hex << decimal;
+    return ss.str();
+}
+
 std::vector<unsigned char> utils::fromHexString(std::string hex_str) {
     std::vector<unsigned char> bytes;
 
@@ -46,6 +52,51 @@ std::array<unsigned char, 32> utils::hash(std::string in) {
     std::array<unsigned char, 32> hash;
     keccak(reinterpret_cast<const uint8_t*>(in.c_str()), in.size(), hash.data(), 32);
     return hash;
+}
+
+// Function to get the function signature for Ethereum contract interaction
+std::string utils::getFunctionSignature(const std::string& function) {
+    std::array<unsigned char, 32> hash = utils::hash(function);
+
+    // Convert the hash to hex string
+    std::string hashHex = toHexString(hash);
+
+    // Return the first 8 characters of the hex string (4 bytes) plus 0x prefix
+    return "0x" + hashHex.substr(0, 8);
+}
+
+std::string utils::padTo32Bytes(const std::string& input, utils::PaddingDirection direction) {
+    constexpr size_t targetSize = 32;
+    std::string output = input;
+    bool has0xPrefix = false;
+
+    // Check if input starts with "0x" prefix
+    if (output.substr(0, 2) == "0x") {
+        has0xPrefix = true;
+        output = output.substr(2);  // remove "0x" prefix for now
+    }
+
+    if(output.size() > targetSize) {
+        throw std::runtime_error("Input size is greater than target size");
+    }
+    else if(output.size() < targetSize) {
+        size_t paddingSize = targetSize - input.size();
+        std::string padding(paddingSize, 0);
+
+        if(direction == utils::PaddingDirection::LEFT) {
+            output = padding + output;
+        }
+        else {
+            output += padding;
+        }
+    }
+
+    // If input started with "0x", add it back
+    if (has0xPrefix) {
+        output = "0x" + output;
+    }
+
+    return output;
 }
 
 std::vector<unsigned char> utils::intToBytes(uint64_t num) {
