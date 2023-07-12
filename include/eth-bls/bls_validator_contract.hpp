@@ -13,10 +13,10 @@ public:
     // Method for creating a transaction to add a public key
     Transaction addValidator(const std::string& publicKey);
 
+    Transaction clear();
+    uint64_t getValidatorsLength();
+
 private:
     std::string contractAddress;
     std::shared_ptr<Provider> provider;
-
-    // This function is not defined in this example
-    std::vector<unsigned char> encodeFunctionCall(const std::string& functionName, const std::vector<unsigned char>& publicKey);
 };

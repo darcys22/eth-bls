@@ -7,6 +7,11 @@
 
 #include "transaction.hpp"
 
+struct ReadCallData {
+    std::string contractAddress;
+    std::string data;
+};
+
 struct FeeData {
     uint64_t gasPrice;
     uint64_t maxFeePerGas;
@@ -28,11 +33,14 @@ public:
     void disconnectFromNetwork();
 
     uint64_t getTransactionCount(const std::string& address, const std::string& blockTag);
+    std::string callReadFunction(const ReadCallData& callData);
     uint32_t getNetworkChainId();
     std::optional<nlohmann::json> getTransactionByHash(const std::string& transactionHash);
 
     std::string sendTransaction(const Transaction& signedTx);
     std::string sendUncheckedTransaction(const Transaction& signedTx);
+
+    uint64_t waitForTransaction(const std::string& txHash, int64_t timeout = 40000);
     uint64_t getBalance(const std::string& address);
 
     FeeData getFeeData();

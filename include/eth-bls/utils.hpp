@@ -27,6 +27,7 @@ namespace utils
     std::string decimalToHex(uint64_t decimal);
 
     std::vector<unsigned char> fromHexString(std::string hex_str);
+    uint64_t fromHexStringToUint64(std::string hex_str);
 
     std::array<unsigned char, 32> fromHexString32Byte(std::string hex_str);
 

@@ -27,6 +27,16 @@ std::vector<unsigned char> utils::fromHexString(std::string hex_str) {
     return bytes;
 }
 
+uint64_t utils::fromHexStringToUint64(std::string hex_str) {
+    // Check for "0x" prefix and remove it
+    if(hex_str.size() >= 2 && hex_str[0] == '0' && hex_str[1] == 'x') {
+        hex_str = hex_str.substr(2);
+    }
+
+    uint64_t value = std::stoull(hex_str, nullptr, 16);
+    return value;
+}
+
 std::array<unsigned char, 32> utils::fromHexString32Byte(std::string hex_str) {
     std::vector<unsigned char> bytesVec = fromHexString(hex_str);
 

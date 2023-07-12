@@ -45,6 +45,30 @@ cpr::Response Provider::makeJsonRpcRequest(const std::string& method, const nloh
     return session.Post();
 }
 
+std::string Provider::callReadFunction(const ReadCallData& callData) {
+    // Prepare the params for the eth_call request
+    nlohmann::json params = nlohmann::json::array();
+    params[0]["to"] = callData.contractAddress;
+    params[0]["data"] = callData.data;
+    params[1] = "latest"; // or the block number you want to query against
+
+    // Make the request
+    cpr::Response response = makeJsonRpcRequest("eth_call", params);
+
+    if (response.status_code == 200) {
+        // Parse the response
+        nlohmann::json responseJson = nlohmann::json::parse(response.text);
+
+        // Check if the result field is present and not null, if it exists then it contains the return value
+        if (!responseJson["result"].is_null()) {
+            return responseJson["result"];
+        }
+    }
+
+    // If we couldn't get the result, throw an exception
+    throw std::runtime_error("Unable to get the result of the function call");
+}
+
 uint32_t Provider::getNetworkChainId() {
     // Make the request takes no params
     nlohmann::json params = nlohmann::json::array();
@@ -124,49 +148,34 @@ std::optional<nlohmann::json> Provider::getTransactionByHash(const std::string& 
     return std::nullopt;
 }
 
-//cpr::Response Provider::sendTransaction(const SenderTransactOpts& opts, const std::string& to, uint64_t value, const std::string& data) {
+// Create and send a raw transaction returns the hash but will also check that it got into the mempool
 std::string Provider::sendTransaction(const Transaction& signedTx) {
     std::string hash = sendUncheckedTransaction(signedTx);
 
-    // Construct a future to handle the transaction
     std::future<std::string> futureTx = std::async(std::launch::async, [&]() -> std::string {
         std::vector<int> timeouts = { 4000, 100, 1000 };
 
         while(true) {
-            // Try getting the transaction
             const auto maybe_tx = getTransactionByHash(hash);
-
-            // If transaction is received, resolve the promise
             if(maybe_tx) {
                 return hash;
             }
 
-            // If no timeouts are left, throw an exception
             if(timeouts.empty()) {
                 throw std::runtime_error("Transaction request timed out");
             }
-
-            // Wait for the next timeout period
             std::this_thread::sleep_for(std::chrono::milliseconds(timeouts.back()));
             timeouts.pop_back();
         }
     });
 
-    //try {
-        //// Wait for the transaction to be received or for an exception to be thrown
-        //return futureTx.get();
-    //} catch(const std::exception& e) {
-        //throw std::runtime_error("An error occurred while requesting the transaction");
-    //}
-    //return "";
     return futureTx.get();
 }
 
-// Create and send a raw transaction returns the hash without checking if it succeeded in getting into a block
+// Create and send a raw transaction returns the hash without checking if it succeeded in getting into the mempool
 std::string Provider::sendUncheckedTransaction(const Transaction& signedTx) {
     nlohmann::json params = nlohmann::json::array();
-
-    params.push_back(signedTx.serialized());  // Assuming Transaction::raw() returns the raw, signed transaction as hex
+    params.push_back(signedTx.serialized());
     
     auto response = makeJsonRpcRequest("eth_sendRawTransaction", params);
     if (response.status_code == 200) {
@@ -181,6 +190,32 @@ std::string Provider::sendUncheckedTransaction(const Transaction& signedTx) {
     } else {
         throw std::runtime_error("Failed to send transaction");
     }
+}
+
+uint64_t Provider::waitForTransaction(const std::string& txHash, int64_t timeout) {
+    std::future<uint64_t> futureTx = std::async(std::launch::async, [&]() -> uint64_t {
+        auto start = std::chrono::steady_clock::now();
+        while(true) {
+            const auto maybe_tx_json = getTransactionByHash(txHash);
+
+            // If transaction is received, resolve the promise
+            if(maybe_tx_json && !(*maybe_tx_json)["blockNumber"].is_null()) {
+                // Parse the block number from the hex string
+                std::string blockNumberHex = (*maybe_tx_json)["blockNumber"];
+                return utils::fromHexStringToUint64(blockNumberHex);
+            }
+
+            auto now = std::chrono::steady_clock::now();
+            if(std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeout) {
+                throw std::runtime_error("Transaction inclusion in a block timed out");
+            }
+
+            // Wait for a while before next check
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+    });
+    
+    return futureTx.get();
 }
 
 uint64_t Provider::getBalance(const std::string& address) {

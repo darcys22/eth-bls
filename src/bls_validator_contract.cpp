@@ -19,3 +19,21 @@ Transaction BLSValidatorsContract::addValidator(const std::string& publicKey) {
 
     return tx;
 }
+
+Transaction BLSValidatorsContract::clear() {
+    Transaction tx(contractAddress, 0, 150000);
+    tx.data = utils::getFunctionSignature("clearValidators()");
+    return tx;
+}
+
+uint64_t BLSValidatorsContract::getValidatorsLength() {
+    // Prepare the ReadCallData
+    ReadCallData callData;
+    callData.contractAddress = contractAddress;
+    callData.data = utils::getFunctionSignature("getValidatorsLength()");
+
+    // Make the request and get the result
+    std::string result = provider->callReadFunction(callData);
+
+    return utils::fromHexStringToUint64(result);
+}
