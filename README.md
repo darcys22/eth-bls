@@ -35,5 +35,5 @@ which will deploy a contract to the sepolia network for BLS Validators. It will 
 
 this is currently
 ```
-0x2fA6c9E34e19851879d502894faAe04D3E007Ae9
+0xFea585c8c8F4DDe3ad7a67919589deF8815910a4
 ```

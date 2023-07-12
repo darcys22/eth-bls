@@ -32,8 +32,7 @@ contract BLSValidators {
         G1Point pubkey;
     }
 
-    uint256 public vCount = 0;
-    mapping (uint256 => Validator) public validators;
+    Validator[] public validators;
 
     event newValidator(uint256 indexed validatorId);
 
@@ -52,18 +51,24 @@ contract BLSValidators {
     }
 
     function addValidator(uint256 pkX, uint256 pkY, uint256 amount) public {
-         vCount++;
-         validators[vCount] = Validator(msg.sender, amount, G1Point(pkX, pkY));
-         emit newValidator(vCount);
+         validators.push(Validator(msg.sender, amount, G1Point(pkX, pkY)));
+         emit newValidator(validators.length - 1);
     }
 
     function addValidatorTest(uint256 amount, uint256 _pk,uint256 n) public {
         for(uint256 i = 0 ;i < n; i++) {
-         vCount++;
          // Temporary
          G1Point memory pk = mul(P1(), _pk+i);
-         validators[vCount] = Validator(msg.sender,amount, pk);
+         validators.push(Validator(msg.sender,amount, pk));
         }
+    }
+
+    function getValidatorsLength() public view returns (uint) {
+        return validators.length;
+    }
+
+    function clearValidators() public {
+        delete validators;
     }
 
     function getValidatorDetails(uint256 id) public view
@@ -78,8 +83,8 @@ contract BLSValidators {
 
     function checkSigAGG(uint256 sigs0, uint256 sigs1, uint256 sigs2, uint256 sigs3, uint256 message) public {
         G1Point memory pubkey;
-        for(uint256 i = 0; i < vCount; i++) {
-            Validator memory v = validators[i+1];
+        for(uint256 i = 0; i < validators.length; i++) {
+            Validator memory v = validators[i];
             pubkey = add(pubkey, v.pubkey);
         }
 
