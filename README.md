@@ -11,6 +11,13 @@ https://sepolia.etherscan.io/pushTx
 
 ## Building the project
 
+### Dependencies
+```
+sudo apt-get update
+sudo apt-get install -y automake cmake build-essential libprocps-dev libtool\
+                        pkg-config yasm texinfo autoconf flex bison clang-format-6.0
+```
+
 ```bash
 mkdir build/ && cd build/
 cmake ..
