@@ -1,4 +1,4 @@
-.PHONY: test clean compile deploy
+.PHONY: test clean compile deploy node
 
 test:
 	#REPORT_GAS=true npx hardhat test
@@ -9,4 +9,9 @@ compile:
    
 deploy:
 	npx hardhat run scripts/deploy.js --network sepolia
+
+# run npx hardhat run scripts/deploy.js --network hardhat immediately after
+node:
+	npx hardhat node
+
 

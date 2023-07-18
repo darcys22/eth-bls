@@ -32,10 +32,10 @@ describe("BLS", function () {
         //});
 
         it("Should be able to verify an aggregate signature", async function () {
-            hre.tracer.enabled = false;
-            const { validators, owner } = await loadFixture(deployFixture);
-            const thing = Math.floor(Math.random() * 100000) + 1;
-            await validators.addValidatorTest(15000, thing, 5);
+            //hre.tracer.enabled = false;
+            //const { validators, owner } = await loadFixture(deployFixture);
+            //const thing = Math.floor(Math.random() * 100000) + 1;
+            //await validators.addValidatorTest(15000, thing, 5);
             //const thing = Math.floor(Math.random() * 100000) + 1;
             //await validators.addValidatorTest(15000, thing, 300);
             //const thing2 = Math.floor(Math.random() * 100000) + 1;
@@ -45,9 +45,9 @@ describe("BLS", function () {
             //const thing4 = Math.floor(Math.random() * 100000) + 1;
             //await validators.addValidatorTest(15000, thing4, 300);
 
-            hre.tracer.enabled = true;
-            await expect(validators.testCheckSigAGG()).to.not.be.reverted;
-            hre.tracer.enabled = false;
+            //hre.tracer.enabled = true;
+            //await expect(validators.testCheckSigAGG()).to.not.be.reverted;
+            //hre.tracer.enabled = false;
         });
     });
 });

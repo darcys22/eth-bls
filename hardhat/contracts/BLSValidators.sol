@@ -1,6 +1,9 @@
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.18;
 
 import { BN256G2 } from "./BN256G2.sol";
+
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "hardhat/console.sol";
 
@@ -93,6 +96,19 @@ contract BLSValidators {
         require(pairing2(P1(), H, negate(pubkey), signature), "Something went wrong");
     }
 
+    function checkAggPubkey(uint256 pkX, uint256 pkY) public {
+        G1Point memory pubkey;
+        console.log(Strings.toHexString(validators[0].pubkey.X));
+        console.log(Strings.toHexString(validators[0].pubkey.Y));
+        console.log(Strings.toHexString(validators[1].pubkey.X));
+        console.log(Strings.toHexString(validators[1].pubkey.Y));
+        pubkey = add(validators[0].pubkey, validators[1].pubkey);
+        console.log(pubkey.X);
+        console.log(pubkey.Y);
+        console.log("hello");
+        require(pubkey.X == pkX, "pubkey x doesnt match");
+        require(pubkey.Y == pkY, "pubkey x doesnt match");
+    }
 
     function testCheckSigAGG() public {
 
