@@ -1,6 +1,7 @@
 #include <mcl/bn.hpp>
 
 #include "eth-bls/service_node_list.hpp"
+#include "eth-bls/utils.hpp"
 
 ServiceNode::ServiceNode() {
     // This init function generates a secret key calling blsSecretKeySetByCSPRNG
@@ -19,7 +20,29 @@ bls::Signature ServiceNode::sign(const std::string& message) {
 std::string ServiceNode::getPublicKeyHex() {
     bls::PublicKey publicKey;
     secretKey.getPublicKey(publicKey);
-    return publicKey.serializeToHexStr();
+    //return publicKey.serializeToHexStr();
+    mclSize serializedPublicKeySize = 32;
+    std::vector<unsigned char> serialized_pubkey(serializedPublicKeySize*2);
+    const blsPublicKey* pub = publicKey.getPtr();
+	uint8_t *dst = serialized_pubkey.data();
+    const mcl::bn::G1* g1Point = reinterpret_cast<const mcl::bn::G1*>(&pub->v);
+    mcl::bn::G1 g1Point2 = *g1Point;
+    g1Point2.normalize();
+    //g1Point2.x.fromMont();
+    //g1Point2.y.fromMont();
+    if (g1Point2.x.serialize(dst, serializedPublicKeySize, mcl::IoSerialize | mcl::IoBigEndian) == 0)
+        throw std::runtime_error("size of x is zero");
+    if (g1Point2.y.serialize(dst + serializedPublicKeySize, serializedPublicKeySize, mcl::IoSerialize | mcl::IoBigEndian) == 0)
+        throw std::runtime_error("size of y is zero");
+
+	return utils::toHexString(serialized_pubkey);
+
+}
+
+bls::PublicKey ServiceNode::getPublicKey() {
+    bls::PublicKey publicKey;
+    secretKey.getPublicKey(publicKey);
+    return publicKey;
 }
 
 ServiceNodeList::ServiceNodeList(size_t numNodes) {

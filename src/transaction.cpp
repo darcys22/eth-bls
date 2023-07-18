@@ -43,9 +43,9 @@ std::string Transaction::serialized() const {
     if (!sig.isEmpty()) {
         temp_val.assign(utils::intToBytes(sig.signatureYParity));
         arr.push_back(temp_val);
-        temp_val.assign(sig.signatureR);
+        temp_val.assign(utils::removeLeadingZeros(sig.signatureR));
         arr.push_back(temp_val);
-        temp_val.assign(sig.signatureS);
+        temp_val.assign(utils::removeLeadingZeros(sig.signatureS));
         arr.push_back(temp_val);
     }
     return "0x02" + utils::toHexString(arr.write());

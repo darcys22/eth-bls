@@ -1,4 +1,6 @@
 #define MCLBN_FP_UNIT_SIZE 4
+#define MCLBN_FR_UNIT_SIZE 4
+#define BLS_ETH
 #include <bls/bls.hpp>
 
 #include <catch2/catch_test_macros.hpp>

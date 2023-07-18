@@ -127,3 +127,12 @@ std::vector<unsigned char> utils::intToBytes(uint64_t num) {
 
     return result;
 }
+
+std::vector<unsigned char> utils::removeLeadingZeros(std::vector<unsigned char> vec) {
+    auto it = vec.begin();
+    while(it != vec.end() && *it == 0) {
+        ++it;
+    }
+    vec.erase(vec.begin(), it);
+    return vec;
+}

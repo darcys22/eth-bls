@@ -1,6 +1,8 @@
 #pragma once
+#define BLS_ETH
 #define MCLBN_FP_UNIT_SIZE 4
-
+#define MCLBN_FR_UNIT_SIZE 4
+#include <bls/bls.h>
 #include <bls/bls.hpp>
 #include <string>
 #include <vector>
@@ -13,6 +15,7 @@ public:
     ~ServiceNode();
     bls::Signature sign(const std::string& message);
     std::string getPublicKeyHex();
+    bls::PublicKey getPublicKey();
 };
 
 class ServiceNodeList {
