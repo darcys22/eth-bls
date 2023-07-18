@@ -10,3 +10,6 @@
 [submodule "external/rlpvalue"]
 	path = external/rlpvalue
 	url = git@github.com:bloq/rlpvalue.git
+[submodule "external/libBLS"]
+	path = external/libBLS
+	url = git@github.com:skalenetwork/libBLS.git
