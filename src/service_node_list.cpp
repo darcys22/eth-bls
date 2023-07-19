@@ -20,7 +20,7 @@ std::string ServiceNode::getPublicKeyHex() {
     //bls::PublicKey publicKey;
     //secretKey.getPublicKey(publicKey);
     //return publicKey.serializeToHexStr();
-    mclSize serializedPublicKeySize = 32;
+    size_t serializedPublicKeySize = 32;
     std::vector<unsigned char> serialized_pubkey(serializedPublicKeySize*2);
     //const blsPublicKey* pub = publicKey.getPtr();
 	//uint8_t *dst = serialized_pubkey.data();

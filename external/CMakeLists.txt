@@ -1,9 +1,31 @@
+set(CPR_USE_SYSTEM_CURL ON CACHE BOOL "" FORCE)
 add_subdirectory(cpr)
 set(SECP256K1_ENABLE_MODULE_RECOVERY ON CACHE BOOL "" FORCE)
+set(SECP256K1_VALGRIND OFF CACHE BOOL "" FORCE)
+set(SECP256K1_BUILD_BENCHMARK OFF CACHE BOOL "" FORCE)
+set(SECP256K1_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(SECP256K1_BUILD_EXHAUSTIVE_TESTS OFF CACHE BOOL "" FORCE)
+set(SECP256K1_BUILD_CTIME_TESTS OFF CACHE BOOL "" FORCE)
+set(SECP256K1_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(secp256k1)
 add_subdirectory(Catch2)
-add_subdirectory(libBLS)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+include_directories(libff/depends/ate-pairing/include)
+include_directories(libff/depends/xbyak)
+add_library(
+    zm
+    STATIC
+    libff/depends/ate-pairing/src/zm.cpp
+    libff/depends/ate-pairing/src/zm2.cpp
+)
+set(IS_LIBFF_PARENT OFF CACHE BOOL "" FORCE)
+add_subdirectory(libff)
+
+set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(BUILD_UTILS OFF CACHE BOOL "" FORCE)
+set(SKALE_SKIP_INSTALLING_DIRECTIVES ON CACHE BOOL "" FORCE)
+add_subdirectory(libBLS)
 
 # RLPValue is built using autotools
 include(ExternalProject)

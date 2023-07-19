@@ -13,3 +13,6 @@
 [submodule "external/libBLS"]
 	path = external/libBLS
 	url = git@github.com:skalenetwork/libBLS.git
+[submodule "external/libff"]
+	path = external/libff
+	url = git@github.com:scipr-lab/libff.git
