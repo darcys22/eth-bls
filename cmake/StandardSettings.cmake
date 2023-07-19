@@ -12,13 +12,6 @@ option(${PROJECT_NAME}_USE_ALT_NAMES "Use alternative names for the project, suc
 
 option(${PROJECT_NAME}_WARNINGS_AS_ERRORS "Treat compiler warnings as errors." OFF)
 
-#
-# Package managers
-#
-# Currently supporting: Conan, Vcpkg.
-
-option(${PROJECT_NAME}_ENABLE_CONAN "Enable the Conan package manager for this project." OFF)
-option(${PROJECT_NAME}_ENABLE_VCPKG "Enable the Vcpkg package manager for this project." OFF)
 Include(FetchContent)
 
 #
