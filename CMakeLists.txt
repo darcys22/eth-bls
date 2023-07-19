@@ -170,7 +170,6 @@ verbose_message("Applied compiler warnings. Using standard ${CMAKE_CXX_STANDARD}
 #
 
 # Identify and link with the specific "packages" the project uses
-#find_package(package_name package_version REQUIRED package_type [other_options])
 target_link_libraries(
   ${PROJECT_NAME}
   PUBLIC
@@ -182,17 +181,7 @@ target_link_libraries(
     mcl::mclbn256
   PRIVATE
     nlohmann_json::nlohmann_json
-    #${PROJECT_NAME}_PROJECT_OPTIONS
-    #${PROJECT_NAME}_PROJECT_WARNINGS
 )
-#if(${PROJECT_NAME}_BUILD_EXECUTABLE AND ${PROJECT_NAME}_ENABLE_UNIT_TESTING)
-#  target_link_libraries(
-#    ${PROJECT_NAME}_LIB
-#    PUBLIC
-#      dependency1 ...
-#  )
-#endif()
-
 # For Windows, it is necessary to link with the MultiThreaded library.
 # Depending on how the rest of the project's dependencies are linked, it might be necessary
 # to change the line to statically link with the library.

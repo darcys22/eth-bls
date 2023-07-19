@@ -10,7 +10,7 @@ compile:
 deploy:
 	npx hardhat run scripts/deploy.js --network sepolia
 
-# run npx hardhat run scripts/deploy.js --network hardhat immediately after
+# run npx hardhat run scripts/deploy.js --network localhost immediately after
 node:
 	npx hardhat node
 
