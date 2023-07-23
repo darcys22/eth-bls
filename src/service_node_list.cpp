@@ -20,7 +20,6 @@ bls::Signature ServiceNode::sign(const std::string& message) {
 std::string ServiceNode::getPublicKeyHex() {
     bls::PublicKey publicKey;
     secretKey.getPublicKey(publicKey);
-    //return publicKey.serializeToHexStr();
     mclSize serializedPublicKeySize = 32;
     std::vector<unsigned char> serialized_pubkey(serializedPublicKeySize*2);
     const blsPublicKey* pub = publicKey.getPtr();
@@ -28,8 +27,6 @@ std::string ServiceNode::getPublicKeyHex() {
     const mcl::bn::G1* g1Point = reinterpret_cast<const mcl::bn::G1*>(&pub->v);
     mcl::bn::G1 g1Point2 = *g1Point;
     g1Point2.normalize();
-    //g1Point2.x.fromMont();
-    //g1Point2.y.fromMont();
     if (g1Point2.x.serialize(dst, serializedPublicKeySize, mcl::IoSerialize | mcl::IoBigEndian) == 0)
         throw std::runtime_error("size of x is zero");
     if (g1Point2.y.serialize(dst + serializedPublicKeySize, serializedPublicKeySize, mcl::IoSerialize | mcl::IoBigEndian) == 0)
@@ -46,7 +43,7 @@ bls::PublicKey ServiceNode::getPublicKey() {
 }
 
 ServiceNodeList::ServiceNodeList(size_t numNodes) {
-    bls::init();
+    bls::init(mclBn_CurveSNARK1);
     nodes.reserve(numNodes);
     for(size_t i = 0; i < numNodes; ++i) {
         nodes.emplace_back(); // construct new ServiceNode in-place
