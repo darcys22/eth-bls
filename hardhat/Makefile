@@ -7,11 +7,12 @@ test:
 compile:
 	npx hardhat compile
    
-deploy:
+deploy-testnet:
 	npx hardhat run scripts/deploy.js --network sepolia
 
-# run npx hardhat run scripts/deploy.js --network localhost immediately after
 node:
 	npx hardhat node
 
+deploy-local:
+	npx hardhat run scripts/deploy.js --network localhost
 

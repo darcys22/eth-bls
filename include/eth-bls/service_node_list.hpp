@@ -22,7 +22,11 @@ class ServiceNodeList {
 public:
     std::vector<ServiceNode> nodes;
 
+    static std::string PublicKeyToHex(bls::PublicKey publicKey);
+
     ServiceNodeList(size_t numNodes);
     ~ServiceNodeList();
+
+    std::string aggregatePubkeyHex();
     std::string aggregateSignatures(const std::string& message);
 };

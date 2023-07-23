@@ -1,6 +1,8 @@
 #include "eth-bls/bls_validator_contract.hpp"
 #include "eth-bls/utils.hpp"
 
+#include <iostream>
+
 BLSValidatorsContract::BLSValidatorsContract(const std::string& _contractAddress, std::shared_ptr<Provider> _provider)
         : contractAddress(_contractAddress), provider(_provider) {}
 
@@ -51,10 +53,7 @@ Transaction BLSValidatorsContract::checkSigAGG(const std::string& sig0, const st
 
 Transaction BLSValidatorsContract::checkAggPubkey(const std::string& aggPubkey) {
     Transaction tx(contractAddress, 0, 800000);
-
     std::string functionSelector = utils::getFunctionSignature("checkAggPubkey(uint256,uint256)");
-
     tx.data = functionSelector + aggPubkey;
-
     return tx;
 }

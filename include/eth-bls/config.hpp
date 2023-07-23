@@ -89,7 +89,7 @@ namespace config {
         inline constexpr uint32_t CHAIN_ID = 1337;
         inline constexpr std::string_view BLOCK_EXPLORER_URL = "";
         inline constexpr std::string_view OFFICIAL_WEBSITE = "";
-        inline constexpr std::string_view BLS_CONTRACT_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+        inline constexpr std::string_view BLS_CONTRACT_ADDRESS = "0xCD8a1C3ba11CF5ECfa6267617243239504a98d90";
     }  // namespace sepolia 
 }  // namespace config
 

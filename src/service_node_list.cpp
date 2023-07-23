@@ -17,23 +17,11 @@ bls::Signature ServiceNode::sign(const std::string& message) {
     return sig;
 }
 
+
 std::string ServiceNode::getPublicKeyHex() {
     bls::PublicKey publicKey;
     secretKey.getPublicKey(publicKey);
-    mclSize serializedPublicKeySize = 32;
-    std::vector<unsigned char> serialized_pubkey(serializedPublicKeySize*2);
-    const blsPublicKey* pub = publicKey.getPtr();
-	uint8_t *dst = serialized_pubkey.data();
-    const mcl::bn::G1* g1Point = reinterpret_cast<const mcl::bn::G1*>(&pub->v);
-    mcl::bn::G1 g1Point2 = *g1Point;
-    g1Point2.normalize();
-    if (g1Point2.x.serialize(dst, serializedPublicKeySize, mcl::IoSerialize | mcl::IoBigEndian) == 0)
-        throw std::runtime_error("size of x is zero");
-    if (g1Point2.y.serialize(dst + serializedPublicKeySize, serializedPublicKeySize, mcl::IoSerialize | mcl::IoBigEndian) == 0)
-        throw std::runtime_error("size of y is zero");
-
-	return utils::toHexString(serialized_pubkey);
-
+    return ServiceNodeList::PublicKeyToHex(publicKey);
 }
 
 bls::PublicKey ServiceNode::getPublicKey() {
@@ -51,6 +39,31 @@ ServiceNodeList::ServiceNodeList(size_t numNodes) {
 }
 
 ServiceNodeList::~ServiceNodeList() {
+}
+
+std::string ServiceNodeList::PublicKeyToHex(bls::PublicKey publicKey) {
+    mclSize serializedPublicKeySize = 32;
+    std::vector<unsigned char> serialized_pubkey(serializedPublicKeySize*2);
+    uint8_t *dst = serialized_pubkey.data();
+    const blsPublicKey* pub = publicKey.getPtr();  
+    const mcl::bn::G1* g1Point = reinterpret_cast<const mcl::bn::G1*>(&pub->v);
+    mcl::bn::G1 g1Point2 = *g1Point;
+    g1Point2.normalize();
+    if (g1Point2.x.serialize(dst, serializedPublicKeySize, mcl::IoSerialize | mcl::IoBigEndian) == 0)
+        throw std::runtime_error("size of x is zero");
+    if (g1Point2.y.serialize(dst + serializedPublicKeySize, serializedPublicKeySize, mcl::IoSerialize | mcl::IoBigEndian) == 0)
+        throw std::runtime_error("size of y is zero");
+
+    return utils::toHexString(serialized_pubkey);
+}
+
+std::string ServiceNodeList::aggregatePubkeyHex() {
+    bls::PublicKey aggregate_pubkey; 
+    aggregate_pubkey.clear();
+    for(auto& node : nodes) {
+        aggregate_pubkey.add(node.getPublicKey());
+    }
+    return PublicKeyToHex(aggregate_pubkey);
 }
 
 std::string ServiceNodeList::aggregateSignatures(const std::string& message) {

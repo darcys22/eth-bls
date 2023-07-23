@@ -7,15 +7,6 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "hardhat/console.sol";
 
-/*
-Toy working POC on BLS Sig and aggregation in Ethereum.
-
-Signatures are generated using https://github.com/0xAshish/py_ecc/blob/master/tests/BLSsmall.py
-
-Code is based on https://github.com/jstoxrocky/zksnarks_example
-
-*/
-
 contract BLSValidators {
 
     struct G1Point {
@@ -97,17 +88,13 @@ contract BLSValidators {
     }
 
     function checkAggPubkey(uint256 pkX, uint256 pkY) public {
-        G1Point memory pubkey;
-        console.log(Strings.toHexString(validators[0].pubkey.X));
-        console.log(Strings.toHexString(validators[0].pubkey.Y));
-        console.log(Strings.toHexString(validators[1].pubkey.X));
-        console.log(Strings.toHexString(validators[1].pubkey.Y));
-        pubkey = add(validators[0].pubkey, validators[1].pubkey);
-        console.log(pubkey.X);
-        console.log(pubkey.Y);
-        console.log("hello");
-        require(pubkey.X == pkX, "pubkey x doesnt match");
-        require(pubkey.Y == pkY, "pubkey x doesnt match");
+        require(validators.length > 1);
+        G1Point memory pubkey = validators[0].pubkey;
+        for(uint256 i = 1; i < validators.length; i++) {
+            pubkey = add(pubkey, validators[i].pubkey);
+        }
+        require(pubkey.X == pkX, "pubkey doesnt match");
+        require(pubkey.Y == pkY, "pubkey doesnt match");
     }
 
     function testCheckSigAGG() public {
