@@ -3,10 +3,9 @@ const fs = require('fs')
  
 async function main() {
     const [deployer] = await ethers.getSigners();
+    const network = await ethers.provider.getNetwork()
 
     console.log("Deploying contracts with the account:", await deployer.getAddress());
-
-    //console.log("Account balance:", (await deployer.provider.getBalance()));
 
     const Library = await ethers.getContractFactory("BN256G2");
     const library = await Library.deploy();
@@ -27,6 +26,8 @@ async function main() {
         chalk.greenBright(await bls.getAddress()),
     )
     fs.writeFileSync(`artifacts/BLS.address`, await bls.getAddress())
+    console.log(network.name)
+    fs.writeFileSync(`artifacts/BLS.network`, network.name)
 }
  
 main()
