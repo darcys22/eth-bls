@@ -4,11 +4,6 @@ cmake_minimum_required(VERSION 3.15)
 # Project details
 #
 
-project(
-  ${CMAKE_PROJECT_NAME}Tests
-  LANGUAGES CXX
-)
-
 verbose_message("Adding tests under ${CMAKE_PROJECT_NAME}Tests...")
 
 foreach(file ${test_sources})

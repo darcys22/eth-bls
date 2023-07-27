@@ -94,6 +94,7 @@ elseif(${PROJECT_NAME}_BUILD_HEADERS_ONLY)
 else()
   add_library(
     ${PROJECT_NAME}
+    STATIC
     ${headers}
     ${sources}
   )
@@ -111,9 +112,9 @@ else()
 endif()
 
 if(${PROJECT_NAME}_ENABLE_UNIT_TESTING)
-  enable_testing()
-  message(STATUS "Build unit tests for the project. Tests should always be found in the test folder\n")
-  add_subdirectory(test)
+    enable_testing()
+    message(STATUS "Build unit tests for the project. Tests should always be found in the test folder\n")
+    add_subdirectory(test)
 endif()
 
 set_target_properties(
