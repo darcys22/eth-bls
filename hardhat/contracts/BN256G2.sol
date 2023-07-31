@@ -9,6 +9,7 @@ pragma solidity ^0.8.18;
 
 library BN256G2 {
     uint256 internal constant FIELD_MODULUS = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47;
+    uint256 constant HALF_FIELD_MODULUS = FIELD_MODULUS / 2;
     uint256 internal constant TWISTBX = 0x2b149d40ceb8aaae81be18991be06ac3b5b4c5e559dbefa33267e6dc24a138e5;
     uint256 internal constant TWISTBY = 0x9713b03af0fed4cd2cafadeed8fdf4a74fa084e52d1852e4a2bd0685c315d2;
     uint internal constant PTXX = 0;
@@ -39,8 +40,7 @@ library BN256G2 {
         uint256, uint256,
         uint256, uint256
     ) {
-        if (
-            pt1xx == 0 && pt1xy == 0 &&
+        if ( pt1xx == 0 && pt1xy == 0 &&
             pt1yx == 0 && pt1yy == 0
         ) {
             if (!(
@@ -225,6 +225,14 @@ library BN256G2 {
         return yyx == 0 && yyy == 0;
     }
 
+    function IsOnCurve(
+        uint256 xx, uint256 xy,
+        uint256 yx, uint256 yy
+    ) public pure returns (bool) {
+        return _isOnCurve(xx,xy,yx,yy);
+    }
+    
+
     function _modInv(uint256 a, uint256 n) internal view returns (uint256 result) {
         bool success;
         assembly {
@@ -392,4 +400,132 @@ library BN256G2 {
             d = d / 2;
         }
     }
+
+    function Get_yy_coordinate(
+        uint256 xx, uint256 xy
+    ) public pure returns (uint256 yx, uint256 yy) {
+        uint256 y_squared_x;
+        uint256 y_squared_y;
+        uint256 xxxx;
+        uint256 xxxy;
+
+        // Calculate y^2 = x^3 + 3 using curve equation
+        // y^2 = x^3 + ax + b with a=0 and b=3
+        (xxxx, xxxy) = _FQ2Mul(xx, xy, xx, xy); // x^2
+        (xxxx, xxxy) = _FQ2Mul(xxxx, xxxy, xx, xy); // x^3
+        (y_squared_x, y_squared_y) = _FQ2Add(xxxx, xxxy, TWISTBX, TWISTBY); // x^3 + b
+
+        // The y coordinate would be sqrt(y_squared) but calculating square root in finite fields is complex
+        // We return y_squared instead. You may want to use a library or a precompiled contract to get the square root
+        return (y_squared_x, y_squared_y);
+    }
+
+    function divBy2(uint256 x) public pure returns (uint256 y) {
+        bool odd = (x & 1) != 0;
+        y = x / 2;
+        if (odd) {
+            y = addmod(y, HALF_FIELD_MODULUS, FIELD_MODULUS);
+        }
+    }
+
+
+    function _sqrt(uint256 xx) internal view returns (uint256 x, bool hasRoot) {
+        bool callSuccess;
+        // solium-disable-next-line security/no-inline-assembly
+        assembly {
+            let freemem := mload(0x40)
+            mstore(freemem, 0x20)
+            mstore(add(freemem, 0x20), 0x20)
+            mstore(add(freemem, 0x40), 0x20)
+            mstore(add(freemem, 0x60), xx)
+            // (N + 1) / 4 = 0xc19139cb84c680a6e14116da060561765e05aa45a1c72a34f082305b61f3f52
+            mstore(
+                add(freemem, 0x80),
+                0xc19139cb84c680a6e14116da060561765e05aa45a1c72a34f082305b61f3f52
+            )
+            // N = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+            mstore(
+                add(freemem, 0xA0),
+                FIELD_MODULUS
+            )
+            callSuccess := staticcall(
+                sub(gas(), 2000),
+                5,
+                freemem,
+                0xC0,
+                freemem,
+                0x20
+            )
+            x := mload(freemem)
+            hasRoot := eq(xx, mulmod(x, x, FIELD_MODULUS))
+        }
+        require(callSuccess, "BLS: sqrt modexp call failed");
+    }
+
+    function FQ2Sqrt(
+        uint256 x1, uint256 x2
+    ) public view returns (uint256, uint256) {
+        // t1 and t2 for Fp types
+        uint256 t1;
+        uint256 t2;
+        bool has_root;
+        
+        // if x.b is zero
+        if (x2 == 0) {
+            // Fp::squareRoot(t1, x.a)
+            (t1, has_root) = _sqrt(x1);
+
+            // if sqrt exists
+            if (has_root) {
+                return (t1, 0);  // y.a = t1, y.b = 0
+            } else {
+                // Fp::squareRoot(t1, -x.a)
+                (t1, has_root) = _sqrt(FIELD_MODULUS - x1);  // -x.a under modulo FIELD_MODULUS
+                assert(has_root);  // assert(b)
+                return (0, t1);  // y.a = 0, y.b = t1
+            }
+        }
+
+
+        // Fp::sqr(t1, x.a); Fp::sqr(t2, x.b);
+        t1 = mulmod(x1, x1, FIELD_MODULUS);
+        t2 = mulmod(x2, x2, FIELD_MODULUS);
+
+        // t1 += t2; // c^2 + d^2
+        t1 = addmod(t1, t2, FIELD_MODULUS);
+        
+        // if (!Fp::squareRoot(t1, t1)) return false;
+        (t1, has_root) = _sqrt(t1);
+        if (!has_root) return (0, 0);  // indicate failed sqrt
+
+        // Fp::add(t2, x.a, t1); Fp::divBy2(t2, t2);
+        t2 = addmod(x1, t1, FIELD_MODULUS);
+        t2 = divBy2(t2);
+
+        // if (!Fp::squareRoot(t2, t2))
+        uint256 sqrt_t2;
+        (sqrt_t2, has_root) = _sqrt(t2);
+        if (!has_root) {
+            // Fp::sub(t2, x.a, t1); Fp::divBy2(t2, t2);
+            t2 = submod(x1, t1, FIELD_MODULUS);
+            t2 = t2 / 2;
+            
+            (sqrt_t2, has_root) = _sqrt(t2);
+            assert(has_root);  // assert(b);
+        }
+
+        // y.a = t2;
+        uint256 y1 = sqrt_t2;
+
+        // t2 += t2; Fp::inv(t2, t2);
+        t2 = addmod(sqrt_t2, sqrt_t2, FIELD_MODULUS);
+        t2 = _modInv(t2, FIELD_MODULUS);
+        
+        // Fp::mul(y.b, x.b, t2);
+        uint256 y2;
+        y2 = mulmod(x2, t2, FIELD_MODULUS);
+
+        return (y1, y2);
+    }
+
 }

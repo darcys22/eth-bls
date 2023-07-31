@@ -75,6 +75,21 @@ contract BLSValidators {
         return (validators[id].user, validators[id].amount, validators[id].pubkey.X, validators[id].pubkey.Y);
     }
 
+    function toHexString(uint256 value) public pure returns (string memory) {
+        // Create a lookup table
+        bytes16 lookup = "0123456789abcdef";
+
+        // Initialize an array
+        bytes memory result = new bytes(64);
+        for (uint i = 0; i < 32; i++) {
+            result[i*2] = lookup[uint8(value>>(8*(31-i)))/16];
+            result[1+i*2] = lookup[uint8(value>>(8*(31-i)))%16];
+        }
+
+        // Prefix with 0x
+        return string(abi.encodePacked("0x", result));
+    }
+
     function checkSigAGG(uint256 sigs0, uint256 sigs1, uint256 sigs2, uint256 sigs3, uint256 message) public {
         G1Point memory pubkey;
         for(uint256 i = 0; i < validators.length; i++) {
@@ -82,9 +97,10 @@ contract BLSValidators {
             pubkey = add(pubkey, v.pubkey);
         }
 
-        G2Point memory H = hashToG2(message);
+        G2Point memory Hm = hashToG2(message);
         G2Point memory signature = G2Point([sigs1,sigs0],[sigs3,sigs2]);
-        require(pairing2(P1(), H, negate(pubkey), signature), "Something went wrong");
+        require(pairing2(P1(), Hm, negate(pubkey), signature), "Something went wrong");
+        require(pairing2(P1(), signature, negate(pubkey), Hm), "Something went wrong"); //SD implementation
     }
 
     function checkAggPubkey(uint256 pkX, uint256 pkY) public {
@@ -95,40 +111,6 @@ contract BLSValidators {
         }
         require(pubkey.X == pkX, "pubkey doesnt match");
         require(pubkey.Y == pkY, "pubkey doesnt match");
-    }
-
-    function testCheckSigAGG() public {
-
-        G1Point memory pubkey;
-        uint[4] memory input;
-        bool success;
-        /*for(uint256 i = 0; i < vCount; i++) {*/
-        for(uint256 i = 0; i < 3; i++) {
-            /*pubkey = add(pubkey, validators[i+1].pubkey);*/
-            input[0] = pubkey.X;
-            input[1] = pubkey.Y;
-            input[2] = validators[i+1].pubkey.X;
-            input[3] = validators[i+1].pubkey.Y;
-            assembly {
-                success := call(sub(gas(), 2000), 6, 0, input, 0xc0, pubkey, 0x60)
-            }
-            /*require(success, "Call to precompiled contract for add failed");*/
-        }
-
-        // hash on G2 point
-        /*G2Point memory H = G2Point(*/
-        /*[7806540115951598708068323537226325143489341620121102987168061034219723055482,*/
-        /*16102053849180588443131133900438094849149715436625045469236991987039241848240],*/
-        /*[6718946360417026759307173704450430250787528919693688413464546568151449945362,*/
-         /*15085587210032391178752839157819905008772577581989468040951987143794090031385]);*/
-
-        /*G2Point memory signature = G2Point(*/
-        /*[20510297253563043906240734487189027213933976667621835319448331165769997484335,*/
-         /*17039283792713629953217756598150981109636679343767085841835508695942368202923],*/
-        /*[1985362097212581787757922254110217851026070065076532109495179805548055991837,*/
-         /*7135647869386222135872517926452623520408611489591663660104271578165118400268]);*/
-
-        /*pairing2(P1(), H, negate(pubkey), signature);*/
     }
 
     /// @return the generator of G1
@@ -186,15 +168,54 @@ contract BLSValidators {
         return mul(P1(), h);
     }
 
-    function hashToG2(uint256 h) public view returns (G2Point memory) {
-        G2Point memory p2 = P2();
-        uint256 x1;
-        uint256 x2;
+    // hashes to G2 using the try and increment method
+    function mapToG2(uint256 h) public view returns (G2Point memory) {
+        // Define the G2Point coordinates
+        uint256 x1 = h;
+        uint256 x2 = 0;
         uint256 y1;
         uint256 y2;
-        (x1,x2,y1,y2) = BN256G2.ECTwistMul(h, p2.X[1], p2.X[0], p2.Y[1], p2.Y[0]);
-        return G2Point([x2,x1],[y2,y1]);
+
+        bool foundValidPoint = false;
+
+        // Iterate until we find a valid G2 point
+        while (!foundValidPoint) {
+            // Try to get y^2
+            (uint256 yx, uint256 yy) = BN256G2.Get_yy_coordinate(x1, x2);
+
+            // Calculate square root
+            (uint256 sqrt_x, uint256 sqrt_y) = BN256G2.FQ2Sqrt(yx, yy);
+
+            // Check if this is a point
+            if (sqrt_x != 0 && sqrt_y != 0) {
+                y1 = sqrt_x;
+                y2 = sqrt_y;
+                if (BN256G2.IsOnCurve(x1, x2, y1, y2)) {
+                    foundValidPoint = true;
+                }
+            } else {
+                // Increment x coordinate and try again.
+                x1 += 1;
+            }
+        }
+
+        return (G2Point([x2,x1],[y2,y1]));
     }
+
+    function hashToG2(uint256 h) public view returns (G2Point memory) {
+        G2Point memory map = mapToG2(h);
+        (uint256 x1, uint256 x2, uint256 y1, uint256 y2) = BN256G2.ECTwistMul(BN256G2.GetFieldModulus(), map.X[1], map.X[0], map.Y[1], map.Y[0]);
+        return (G2Point([x2,x1],[y2,y1]));
+    }
+
+    function rootFp2(uint256 x, uint256 y) public view returns (uint256, uint256) {
+        return BN256G2.FQ2Sqrt(x,y);
+    }
+
+    function getWeierstrass(uint256 x, uint256 y) public pure returns (uint256, uint256) {
+        return BN256G2.Get_yy_coordinate(x,y);
+    }
+
 
     function modPow(uint256 base, uint256 exponent, uint256 modulus) internal returns (uint256) {
         uint256[6] memory input = [32, 32, 32, base, exponent, modulus];
