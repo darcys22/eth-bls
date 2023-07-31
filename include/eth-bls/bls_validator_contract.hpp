@@ -16,7 +16,7 @@ public:
     Transaction clear();
     uint64_t getValidatorsLength();
 
-    Transaction checkSigAGG(const std::string& sig0, const std::string& sig1, const std::string& sig2, const std::string& sig3, const std::string& message);
+    Transaction checkSigAGG(const std::string& sig, const std::string& message);
     Transaction checkAggPubkey(const std::string& aggPubkey);
 
 private:

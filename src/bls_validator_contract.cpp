@@ -1,5 +1,7 @@
 #include "eth-bls/bls_validator_contract.hpp"
 #include "eth-bls/utils.hpp"
+#include "eth-bls/ec_utils.hpp"
+
 
 #include <iostream>
 
@@ -31,23 +33,19 @@ uint64_t BLSValidatorsContract::getValidatorsLength() {
     ReadCallData callData;
     callData.contractAddress = contractAddress;
     callData.data = utils::getFunctionSignature("getValidatorsLength()");
-
-    // Make the request and get the result
     std::string result = provider->callReadFunction(callData);
-
     return utils::fromHexStringToUint64(result);
 }
 
-//function checkSigAGG(uint256 sigs0, uint256 sigs1, uint256 sigs2, uint256 sigs3, uint256 message) public {
-Transaction BLSValidatorsContract::checkSigAGG(const std::string& sig0, const std::string& sig1, const std::string& sig2, const std::string& sig3, const std::string& message) {
-    Transaction tx(contractAddress, 0, 800000);
+Transaction BLSValidatorsContract::checkSigAGG(const std::string& sig, const std::string& message) {
+    Transaction tx(contractAddress, 0, 30000000);
+    std::string functionSelector = utils::getFunctionSignature("checkSigAGG(uint256,uint256,uint256,uint256,uint256)");
+    std::string message_padded = utils::padTo32Bytes(utils::toHexString(utils::HashModulus(message)), utils::PaddingDirection::LEFT);
 
-    std::string functionSelector = utils::getFunctionSignature("checkSigAgg(uint256,uint256,uint256,uint256,uint256)");
+    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - hash sent to contract: " << message_padded << " - debug\n";
+    tx.data = functionSelector + sig + message_padded;
 
-    std::string message_padded = utils::padTo32Bytes(utils::toHexString(message), utils::PaddingDirection::LEFT);
-
-    tx.data = functionSelector + sig0 + sig1 + sig2 + sig3 + message_padded;
-
+    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - data: " << tx.data << " - debug\n";
     return tx;
 }
 

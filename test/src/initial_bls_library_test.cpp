@@ -1,7 +1,14 @@
 #define MCLBN_FP_UNIT_SIZE 4
 #define MCLBN_FR_UNIT_SIZE 4
 #define BLS_ETH
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <bls/bls.hpp>
+#undef MCLBN_NO_AUTOLINK
+#pragma GCC diagnostic pop
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_all.hpp>

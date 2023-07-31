@@ -1,5 +1,4 @@
-#ifndef TMP_TMP_H_
-#define TMP_TMP_H_
+#pragma once
 
 #include <cpr/cpr.h>
 
@@ -12,5 +11,3 @@ namespace tmp
     int ecdsa();
 // END
 }
-
-#endif  // TMP_TMP_H_

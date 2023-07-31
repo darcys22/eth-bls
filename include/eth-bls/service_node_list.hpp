@@ -1,9 +1,19 @@
 #pragma once
+
 #define BLS_ETH
 #define MCLBN_FP_UNIT_SIZE 4
 #define MCLBN_FR_UNIT_SIZE 4
-#include <bls/bls.h>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <bls/bls.hpp>
+#include <mcl/bn.hpp>
+#undef MCLBN_NO_AUTOLINK
+#pragma GCC diagnostic pop
+
 #include <string>
 #include <vector>
 
@@ -13,7 +23,7 @@ private:
 public:
     ServiceNode();
     ~ServiceNode();
-    bls::Signature sign(const std::string& message);
+    bls::Signature signHash(const std::array<unsigned char, 32>& hash);
     std::string getPublicKeyHex();
     bls::PublicKey getPublicKey();
 };
@@ -21,8 +31,6 @@ public:
 class ServiceNodeList {
 public:
     std::vector<ServiceNode> nodes;
-
-    static std::string PublicKeyToHex(bls::PublicKey publicKey);
 
     ServiceNodeList(size_t numNodes);
     ~ServiceNodeList();
