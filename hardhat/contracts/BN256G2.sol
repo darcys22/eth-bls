@@ -8,6 +8,7 @@ pragma solidity ^0.8.18;
  */
 
 library BN256G2 {
+    uint256 internal constant CURVE_ORDER_FACTOR = 4965661367192848881; // this is also knows as z, generates prime definine base field (FIELD MODULUS) and order of the curve for BN curves
     uint256 internal constant FIELD_MODULUS = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47;
     uint256 constant HALF_FIELD_MODULUS = FIELD_MODULUS / 2;
     uint256 internal constant TWISTBX = 0x2b149d40ceb8aaae81be18991be06ac3b5b4c5e559dbefa33267e6dc24a138e5;
@@ -18,6 +19,34 @@ library BN256G2 {
     uint internal constant PTYY = 3;
     uint internal constant PTZX = 4;
     uint internal constant PTZY = 5;
+
+    /*
+    These constants represent the coefficients used to adjust the x and y coordinates
+    of a point on an elliptic curve when applying the Frobenius Endomorphism. The 
+    Frobenius Endomorphism is a function that can be applied to a point on an elliptic 
+    curve, resulting in another valid point on the curve. It is an efficient operation
+    that is especially useful in cryptographic protocols implemented on elliptic curves. 
+
+    The coefficients are specific to the curve and the field in which the curve is defined. 
+    In this case, they are calculated as follows:
+
+    1. We start with a base element xi, which in our case is (9, 1) in the field F_p^2.
+    2. We then raise this base element to the power of ((p - 1) / 6) to obtain g. 
+    3. The x-coefficient (FROBENIUS_COEFF_X) is then calculated as the square of g.
+    4. The y-coefficient (FROBENIUS_COEFF_Y) is calculated as the cube of g.
+
+    These coefficients are then used in the implementation of the Frobenius map. The 
+    constants provided here are pre-calculated for the specific curve and field used in 
+    this library to avoid the need for costly power operations during the execution of the
+    library's functions.
+
+    FROBENIUS_COEFF_X_0, FROBENIUS_COEFF_X_1 form the x-coefficient (a + ib format) 
+    and FROBENIUS_COEFF_Y_0, FROBENIUS_COEFF_Y_1 form the y-coefficient (a + ib format).
+    */
+    uint256 constant FROBENIUS_COEFF_X_0 = 20303995798020783686204938938668999116588915527049742511651040346391187346148;
+    uint256 constant FROBENIUS_COEFF_X_1 = 829166838158413941648380249167709268519113197656190490901337149189412316759;
+    uint256 constant FROBENIUS_COEFF_Y_0 = 10523845223051879160395834146896993926532336255175169242256413317622239306011;
+    uint256 constant FROBENIUS_COEFF_Y_1 = 18560642652406047192290216298031379625901642703625976713306583580755963821235;
 
     /**
      * @notice Add two twist points
@@ -207,6 +236,23 @@ library BN256G2 {
             mulmod(x, inv, FIELD_MODULUS),
             FIELD_MODULUS - mulmod(y, inv, FIELD_MODULUS)
         );
+    }
+
+    function _FQ2Pow(uint256 basex, uint256 basey, uint256 exponent) internal pure returns (uint256, uint256) 
+    {
+        uint256 resultx = 1;
+        uint256 resulty = 0; // Start with 1 + 0i in Fp2
+        while (exponent > 0) {
+            if (exponent % 2 != 0) {
+                // Multiply result by base in Fp2
+                (resultx, resulty) = _FQ2Mul(resultx, resulty, basex, basey);
+            }
+            // Square the base in Fp2
+            (basex, basey) = _FQ2Mul(basex, basey, basex, basey);
+            // Move to the next bit in the exponent
+            exponent /= 2;
+        }
+        return (resultx, resulty);
     }
 
     function _isOnCurve(
@@ -527,5 +573,87 @@ library BN256G2 {
 
         return (y1, y2);
     }
+
+    function ECTwistMulByCofactor(
+        uint256 Pxx, uint256 Pxy,
+        uint256 Pyx, uint256 Pyy
+    ) public view returns (
+        uint256, uint256,
+        uint256, uint256
+    ) {
+        assert(_isOnCurve(
+            Pxx, Pxy,
+            Pyx, Pyy
+        ));
+        uint256[6] memory Q = [Pxx, Pxy, Pyx, Pyy, 1, 0];
+        
+        Q = _ECTwistMulByCofactorJacobian(Q);
+
+        return _fromJacobian(
+            Q[PTXX], Q[PTXY],
+            Q[PTYX], Q[PTYY],
+            Q[PTZX], Q[PTZY]
+        );
+    }
+
+    function _ECTwistMulByCofactorJacobian(
+        uint256[6] memory pt1
+    ) public pure returns (
+        uint256[6] memory pt2
+    ) {
+        uint256[6] memory T0;
+        uint256[6] memory T1;
+        uint256[6] memory T2;
+
+        // T0 = CURVE_ORDER_FACTOR * P
+        T0 = _ECTwistMulJacobian(CURVE_ORDER_FACTOR, pt1[PTXX], pt1[PTXY], pt1[PTYX], pt1[PTYY], pt1[PTZX], pt1[PTZY]);
+
+        // T1 = 2 * T0
+        T1 = _ECTwistMulJacobian(2, T0[PTXX], T0[PTXY], T0[PTYX], T0[PTYY], T0[PTZX], T0[PTZY]);
+
+        // T1 = T1 + T0
+        T1 = _ECTwistAddJacobian(T0[PTXX], T0[PTXY], T0[PTYX], T0[PTYY], T0[PTZX], T0[PTZY], T1[PTXX], T1[PTXY], T1[PTYX], T1[PTYY], T1[PTZX], T1[PTZY]);
+
+        // T1 = Frobenius(T1)
+        T1 = _ECTwistFrobeniusJacobian(T1);
+
+        // T2 = Frobenius^2(T0)
+        T2 = _ECTwistFrobeniusJacobian(T0);
+        T2 = _ECTwistFrobeniusJacobian(T2);
+
+        // T0 = T0 + T1 + T2
+        T0 = _ECTwistAddJacobian(T0[PTXX], T0[PTXY], T0[PTYX], T0[PTYY], T0[PTZX], T0[PTZY], T1[PTXX], T1[PTXY], T1[PTYX], T1[PTYY], T1[PTZX], T1[PTZY]);
+        T0 = _ECTwistAddJacobian(T0[PTXX], T0[PTXY], T0[PTYX], T0[PTYY], T0[PTZX], T0[PTZY], T2[PTXX], T2[PTXY], T2[PTYX], T2[PTYY], T2[PTZX], T2[PTZY]);
+
+        // T2 = Frobenius^3(P)
+        T2 = _ECTwistFrobeniusJacobian(pt1);
+        T2 = _ECTwistFrobeniusJacobian(T2);
+        T2 = _ECTwistFrobeniusJacobian(T2);
+
+        // Q = T0 + T2
+        return _ECTwistAddJacobian(T0[PTXX], T0[PTXY], T0[PTYX], T0[PTYY], T0[PTZX], T0[PTZY], T2[PTXX], T2[PTXY], T2[PTYX], T2[PTYY], T2[PTZX], T2[PTZY]);
+    }
+
+    function _ECTwistFrobeniusJacobian(uint256[6] memory pt1) internal pure returns (uint256[6] memory pt2) {
+        // Apply Frobenius map to each component
+        (pt2[PTXX], pt2[PTXY]) = _FQ2Frobenius(pt1[PTXX], pt1[PTXY]);
+        (pt2[PTYX], pt2[PTYY]) = _FQ2Frobenius(pt1[PTYX], pt1[PTYY]);
+        (pt2[PTZX], pt2[PTZY]) = _FQ2Frobenius(pt1[PTZX], pt1[PTZY]);
+
+        // Multiply x and y coordinates by appropriate constants to bring it back onto the curve
+        (pt2[PTXX], pt2[PTXY]) = _FQ2Mul(pt2[PTXX], pt2[PTXY], FROBENIUS_COEFF_X_0, FROBENIUS_COEFF_X_1);
+        (pt2[PTYX], pt2[PTYY]) = _FQ2Mul(pt2[PTYX], pt2[PTYY], FROBENIUS_COEFF_Y_0, FROBENIUS_COEFF_Y_1);
+
+        return pt2;
+    }
+
+
+    function _FQ2Frobenius(
+        uint256 x1, uint256 x2
+    ) internal pure returns (uint256, uint256) {
+        return (x1, FIELD_MODULUS - x2);
+    }
+
+
 
 }

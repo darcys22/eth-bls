@@ -204,7 +204,7 @@ contract BLSValidators {
 
     function hashToG2(uint256 h) public view returns (G2Point memory) {
         G2Point memory map = mapToG2(h);
-        (uint256 x1, uint256 x2, uint256 y1, uint256 y2) = BN256G2.ECTwistMul(BN256G2.GetFieldModulus(), map.X[1], map.X[0], map.Y[1], map.Y[0]);
+        (uint256 x1, uint256 x2, uint256 y1, uint256 y2) = BN256G2.ECTwistMulByCofactor(map.X[1], map.X[0], map.Y[1], map.Y[0]);
         return (G2Point([x2,x1],[y2,y1]));
     }
 
