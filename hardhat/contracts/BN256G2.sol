@@ -34,19 +34,15 @@ library BN256G2 {
     2. We then raise this base element to the power of ((p - 1) / 6) to obtain g. 
     3. The x-coefficient (FROBENIUS_COEFF_X) is then calculated as the square of g.
     4. The y-coefficient (FROBENIUS_COEFF_Y) is calculated as the cube of g.
-
-    These coefficients are then used in the implementation of the Frobenius map. The 
-    constants provided here are pre-calculated for the specific curve and field used in 
-    this library to avoid the need for costly power operations during the execution of the
-    library's functions.
-
-    FROBENIUS_COEFF_X_0, FROBENIUS_COEFF_X_1 form the x-coefficient (a + ib format) 
-    and FROBENIUS_COEFF_Y_0, FROBENIUS_COEFF_Y_1 form the y-coefficient (a + ib format).
     */
-    uint256 constant FROBENIUS_COEFF_X_0 = 20303995798020783686204938938668999116588915527049742511651040346391187346148;
-    uint256 constant FROBENIUS_COEFF_X_1 = 829166838158413941648380249167709268519113197656190490901337149189412316759;
-    uint256 constant FROBENIUS_COEFF_Y_0 = 10523845223051879160395834146896993926532336255175169242256413317622239306011;
-    uint256 constant FROBENIUS_COEFF_Y_1 = 18560642652406047192290216298031379625901642703625976713306583580755963821235;
+
+    // xiToPMinus1Over3 is ξ^((p-1)/3) where ξ = i+9.
+    uint256 constant FROBENIUS_COEFF_X_0 = 21575463638280843010398324269430826099269044274347216827212613867836435027261;
+    uint256 constant FROBENIUS_COEFF_X_1 = 10307601595873709700152284273816112264069230130616436755625194854815875713954;
+
+    // xiToPMinus1Over2 is ξ^((p-1)/2) where ξ = i+9.
+    uint256 constant FROBENIUS_COEFF_Y_0 = 2821565182194536844548159561693502659359617185244120367078079554186484126554;
+    uint256 constant FROBENIUS_COEFF_Y_1 = 3505843767911556378687030309984248845540243509899259641013678093033130930403;
 
     /**
      * @notice Add two twist points
@@ -597,19 +593,20 @@ library BN256G2 {
     }
 
     function _ECTwistMulByCofactorJacobian(
-        uint256[6] memory pt1
-    ) public pure returns (
-        uint256[6] memory pt2
+        uint256[6] memory P
+    ) public view returns (
+        uint256[6] memory Q
     ) {
         uint256[6] memory T0;
         uint256[6] memory T1;
         uint256[6] memory T2;
 
         // T0 = CURVE_ORDER_FACTOR * P
-        T0 = _ECTwistMulJacobian(CURVE_ORDER_FACTOR, pt1[PTXX], pt1[PTXY], pt1[PTYX], pt1[PTYY], pt1[PTZX], pt1[PTZY]);
+        T0 = _ECTwistMulJacobian(CURVE_ORDER_FACTOR, P[PTXX], P[PTXY], P[PTYX], P[PTYY], P[PTZX], P[PTZY]);
 
         // T1 = 2 * T0
         T1 = _ECTwistMulJacobian(2, T0[PTXX], T0[PTXY], T0[PTYX], T0[PTYY], T0[PTZX], T0[PTZY]);
+
 
         // T1 = T1 + T0
         T1 = _ECTwistAddJacobian(T0[PTXX], T0[PTXY], T0[PTYX], T0[PTYY], T0[PTZX], T0[PTZY], T1[PTXX], T1[PTXY], T1[PTYX], T1[PTYY], T1[PTZX], T1[PTZY]);
@@ -626,7 +623,7 @@ library BN256G2 {
         T0 = _ECTwistAddJacobian(T0[PTXX], T0[PTXY], T0[PTYX], T0[PTYY], T0[PTZX], T0[PTZY], T2[PTXX], T2[PTXY], T2[PTYX], T2[PTYY], T2[PTZX], T2[PTZY]);
 
         // T2 = Frobenius^3(P)
-        T2 = _ECTwistFrobeniusJacobian(pt1);
+        T2 = _ECTwistFrobeniusJacobian(P);
         T2 = _ECTwistFrobeniusJacobian(T2);
         T2 = _ECTwistFrobeniusJacobian(T2);
 
@@ -634,7 +631,7 @@ library BN256G2 {
         return _ECTwistAddJacobian(T0[PTXX], T0[PTXY], T0[PTYX], T0[PTYY], T0[PTZX], T0[PTZY], T2[PTXX], T2[PTXY], T2[PTYX], T2[PTYY], T2[PTZX], T2[PTZY]);
     }
 
-    function _ECTwistFrobeniusJacobian(uint256[6] memory pt1) internal pure returns (uint256[6] memory pt2) {
+    function _ECTwistFrobeniusJacobian(uint256[6] memory pt1) public view returns (uint256[6] memory pt2) {
         // Apply Frobenius map to each component
         (pt2[PTXX], pt2[PTXY]) = _FQ2Frobenius(pt1[PTXX], pt1[PTXY]);
         (pt2[PTYX], pt2[PTYY]) = _FQ2Frobenius(pt1[PTYX], pt1[PTYY]);
@@ -650,7 +647,7 @@ library BN256G2 {
 
     function _FQ2Frobenius(
         uint256 x1, uint256 x2
-    ) internal pure returns (uint256, uint256) {
+    ) public pure returns (uint256, uint256) {
         return (x1, FIELD_MODULUS - x2);
     }
 

@@ -81,10 +81,10 @@ describe("BLS", function () {
         it("hashed point should be correct", async function () {
             const { validators, owner } = await loadFixture(deployFixture);
             const [x, y] = await validators.hashToG2("0x2a1e00efd15f90ee1e701f07eefc54ebe4ea96adb82c3112ae21140d3c529a38");
-            expect(x[1]).to.equal("0x1d41a2e4a8736e2c714b15dee463d6cda4e1f2c1322be4b8d1bbf96b733a4e18")
-            expect(x[0]).to.equal("0x3061f0216797fe6c86cb1a2270bcd7207295e9a84f3326e2c2e31484b44f8971")
-            expect(y[1]).to.equal("0x1efc2846ee4d94c41c377155bbe16eed9a6ae8a89178ddb83467c6de6fbeba52")
-            expect(y[0]).to.equal("0x21f63950d1d4fbe1d0b2dfc519553f952c52112b6310cbdc05aa13be001fcdba")
+            expect(x[1]).to.equal("0x0109cf20e6670180cb7cc1d82133b8048ba9bc470a67bfca753a2eeb121149cb")
+            expect(x[0]).to.equal("0x20fc77309d388d60c855607e59c085148d1b3a51bac8da75374318304763794e")
+            expect(y[1]).to.equal("0x24e3d166dbfbd1866cb98b706de8b97dcbb05d751b6615a0a40a018b6aaa25d3")
+            expect(y[0]).to.equal("0x25617fbf911ddde56a0bfd3c681cdc360fbaa70dd2e653c22d6f7f3c562e65f5")
 
         });
         it("should be to root a point", async function () {
