@@ -99,7 +99,7 @@ contract BLSValidators {
 
         G2Point memory Hm = hashToG2(message);
         G2Point memory signature = G2Point([sigs1,sigs0],[sigs3,sigs2]);
-        require(pairing2(P1(), Hm, negate(pubkey), signature), "Something went wrong");
+        /*require(pairing2(P1(), Hm, negate(pubkey), signature), "Something went wrong");*/
         require(pairing2(P1(), signature, negate(pubkey), Hm), "Something went wrong"); //SD implementation
     }
 

@@ -20,7 +20,7 @@ make test
 ## Deploy contract
 ```
 cd hardhat          # if not in the hardhat directory already
-make deploy
+make deploy-sepolia
 ```
 
 which will deploy a contract to the sepolia network for BLS Validators. It will save an artifact of the contracts address to
@@ -28,7 +28,7 @@ which will deploy a contract to the sepolia network for BLS Validators. It will 
 
 this is currently
 ```
-0x13f87B92D8fEB908C20978C6A4424444a3F6d801
+0x9C162e2c14F549d572fF4229A59bD4301F3Fc8e7
 ```
 
 You can follow this up with 

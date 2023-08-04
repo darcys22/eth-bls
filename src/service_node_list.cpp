@@ -31,6 +31,14 @@ bls::PublicKey ServiceNode::getPublicKey() {
 
 ServiceNodeList::ServiceNodeList(size_t numNodes) {
     bls::init(mclBn_CurveSNARK1);
+    mclBn_setMapToMode(MCL_MAP_TO_MODE_TRY_AND_INC);
+    mcl::bn::G1 gen;
+    bool b;
+    mcl::bn::mapToG1(&b, gen, 1);
+    blsPublicKey publicKey;
+    publicKey.v = *reinterpret_cast<const mclBnG1*>(&gen); // Cast gen to mclBnG1 and assign it to publicKey.v
+
+    blsSetGeneratorOfPublicKey(&publicKey);
     nodes.reserve(numNodes);
     for(size_t i = 0; i < numNodes; ++i) {
         nodes.emplace_back(); // construct new ServiceNode in-place
@@ -50,20 +58,12 @@ std::string ServiceNodeList::aggregatePubkeyHex() {
 }
 
 std::string ServiceNodeList::aggregateSignatures(const std::string& message) {
-    bls::SignatureVec sigs;
-    bls::IdVec ids(nodes.size());
-    size_t count = 0;
-
     const std::array<unsigned char, 32> hash = utils::hash(message); // Get the hash of the input
-
-    for(auto& node : nodes) {
-        sigs.push_back(node.signHash(hash));
-        ids[count] = static_cast<unsigned int>(count + 1);
-        count++;
-    }
-
     bls::Signature aggSig;
-    aggSig.recover(sigs, ids);
+    aggSig.clear();
+    for(auto& node : nodes) {
+        aggSig.add(node.signHash(hash));
+    }
     return utils::SignatureToHex(aggSig);
 }
 

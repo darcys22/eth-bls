@@ -13,6 +13,9 @@ async function main() {
       case 'localhost':
         namespace = 'ganache';
         break;
+      case 'sepolia':
+        namespace = 'sepolia';
+        break;
       default:
         console.error(`Unknown network '${network}'`);
         process.exit(1);

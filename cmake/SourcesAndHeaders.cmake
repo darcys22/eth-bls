@@ -35,4 +35,5 @@ set(test_sources
   src/mcl_test.cpp
   src/service_node_list_test.cpp
   src/bls_validator_contract_test.cpp
+  src/verify.cpp
 )

@@ -46,6 +46,5 @@ std::array<unsigned char, 32> utils::HashModulus(std::string message) {
     mclSize serializedSignatureSize = 32;
     if (y.a.serialize(hdst, serializedSignatureSize, mcl::IoSerialize | mcl::IoBigEndian) == 0)
         throw std::runtime_error("size of y.a is zero");
-    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - " << utils::toHexString(serialized_hash)<< " - debug\n";
     return serialized_hash;
 }

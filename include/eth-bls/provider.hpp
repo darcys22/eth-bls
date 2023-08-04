@@ -40,7 +40,7 @@ public:
     std::string sendTransaction(const Transaction& signedTx);
     std::string sendUncheckedTransaction(const Transaction& signedTx);
 
-    uint64_t waitForTransaction(const std::string& txHash, int64_t timeout = 40000);
+    uint64_t waitForTransaction(const std::string& txHash, int64_t timeout = 80000);
     uint64_t getBalance(const std::string& address);
 
     FeeData getFeeData();

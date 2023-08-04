@@ -41,11 +41,7 @@ Transaction BLSValidatorsContract::checkSigAGG(const std::string& sig, const std
     Transaction tx(contractAddress, 0, 30000000);
     std::string functionSelector = utils::getFunctionSignature("checkSigAGG(uint256,uint256,uint256,uint256,uint256)");
     std::string message_padded = utils::padTo32Bytes(utils::toHexString(utils::HashModulus(message)), utils::PaddingDirection::LEFT);
-
-    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - hash sent to contract: " << message_padded << " - debug\n";
     tx.data = functionSelector + sig + message_padded;
-
-    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - data: " << tx.data << " - debug\n";
     return tx;
 }
 
