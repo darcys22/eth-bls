@@ -148,6 +148,31 @@ std::optional<nlohmann::json> Provider::getTransactionByHash(const std::string& 
     return std::nullopt;
 }
 
+std::optional<nlohmann::json> Provider::getTransactionReceipt(const std::string& transactionHash) {
+    nlohmann::json params = nlohmann::json::array();
+    params.push_back(transactionHash);
+
+    // Make the request
+    cpr::Response response = makeJsonRpcRequest("eth_getTransactionReceipt", params);
+
+    if (response.status_code == 200) {
+        // Parse the response
+        nlohmann::json responseJson = nlohmann::json::parse(response.text);
+
+        if (responseJson.find("error") != responseJson.end())
+            throw std::runtime_error("Error getting transaction receipt: " + responseJson["error"]["message"].get<std::string>());
+
+        // Check if the result field is present and not null
+        if (!responseJson["result"].is_null()) {
+            // Return the block number
+            return responseJson["result"];
+        }
+    }
+
+    // If we couldn't get the block number, return an empty optional
+    return std::nullopt;
+}
+
 // Create and send a raw transaction returns the hash but will also check that it got into the mempool
 std::string Provider::sendTransaction(const Transaction& signedTx) {
     std::string hash = sendUncheckedTransaction(signedTx);
@@ -203,6 +228,32 @@ uint64_t Provider::waitForTransaction(const std::string& txHash, int64_t timeout
                 // Parse the block number from the hex string
                 std::string blockNumberHex = (*maybe_tx_json)["blockNumber"];
                 return utils::fromHexStringToUint64(blockNumberHex);
+            }
+
+            auto now = std::chrono::steady_clock::now();
+            if(std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeout) {
+                throw std::runtime_error("Transaction inclusion in a block timed out");
+            }
+
+            // Wait for a while before next check
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+    });
+    
+    return futureTx.get();
+}
+
+bool Provider::transactionSuccessful(const std::string& txHash, int64_t timeout) {
+    std::future<uint64_t> futureTx = std::async(std::launch::async, [&]() -> uint64_t {
+        auto start = std::chrono::steady_clock::now();
+        while(true) {
+            const auto maybe_tx_json = getTransactionReceipt(txHash);
+
+            // If transaction is received, resolve the promise
+            if(maybe_tx_json && !(*maybe_tx_json)["status"].is_null()) {
+                // Parse the status from the hex string
+                std::string statusHex = (*maybe_tx_json)["status"];
+                return static_cast<bool>(utils::fromHexStringToUint64(statusHex));
             }
 
             auto now = std::chrono::steady_clock::now();

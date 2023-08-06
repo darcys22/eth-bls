@@ -48,6 +48,10 @@ ServiceNodeList::ServiceNodeList(size_t numNodes) {
 ServiceNodeList::~ServiceNodeList() {
 }
 
+void ServiceNodeList::addNode() {
+    nodes.emplace_back(); // construct new ServiceNode in-place
+}
+
 std::string ServiceNodeList::aggregatePubkeyHex() {
     bls::PublicKey aggregate_pubkey; 
     aggregate_pubkey.clear();

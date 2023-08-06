@@ -35,6 +35,8 @@ public:
     ServiceNodeList(size_t numNodes);
     ~ServiceNodeList();
 
+    void addNode();
+
     std::string aggregatePubkeyHex();
     std::string aggregateSignatures(const std::string& message);
 };

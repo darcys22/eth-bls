@@ -28,8 +28,7 @@ module.exports = {
       accounts,
     },
     sepolia: {
-       //url: "https://rpc.sepolia.org",
-       url: "https://ethereum-sepolia.blockpi.network/v1/rpc/public",
+       url: "https://rpc.sepolia.org",
        chainId: 11155111,
        accounts,
     },

@@ -36,11 +36,13 @@ public:
     std::string callReadFunction(const ReadCallData& callData);
     uint32_t getNetworkChainId();
     std::optional<nlohmann::json> getTransactionByHash(const std::string& transactionHash);
+    std::optional<nlohmann::json> getTransactionReceipt(const std::string& transactionHash);
 
     std::string sendTransaction(const Transaction& signedTx);
     std::string sendUncheckedTransaction(const Transaction& signedTx);
 
-    uint64_t waitForTransaction(const std::string& txHash, int64_t timeout = 80000);
+    uint64_t waitForTransaction(const std::string& txHash, int64_t timeout = 320000);
+    bool transactionSuccessful(const std::string& txHash, int64_t timeout = 320000);
     uint64_t getBalance(const std::string& address);
 
     FeeData getFeeData();

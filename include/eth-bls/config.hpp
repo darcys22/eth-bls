@@ -83,7 +83,7 @@ namespace config {
         inline constexpr uint32_t CHAIN_ID = 11155111;
         inline constexpr std::string_view BLOCK_EXPLORER_URL = "https://sepolia.etherscan.io/";
         inline constexpr std::string_view OFFICIAL_WEBSITE = "https://sepolia.dev/";
-        inline constexpr std::string_view BLS_CONTRACT_ADDRESS = "0x9C162e2c14F549d572fF4229A59bD4301F3Fc8e7";
+        inline constexpr std::string_view BLS_CONTRACT_ADDRESS = "0x41c8a870AB658a3B0bE962986671c152664684cA";
     }  // namespace sepolia 
     namespace ganache {
         inline constexpr std::string_view RPC_URL = "127.0.0.1:8545";
