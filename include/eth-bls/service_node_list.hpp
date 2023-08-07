@@ -36,6 +36,7 @@ public:
     ~ServiceNodeList();
 
     void addNode();
+    std::string getLatestNodePubkey();
 
     std::string aggregatePubkeyHex();
     std::string aggregateSignatures(const std::string& message);

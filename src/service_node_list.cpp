@@ -51,6 +51,10 @@ ServiceNodeList::~ServiceNodeList() {
 void ServiceNodeList::addNode() {
     nodes.emplace_back(); // construct new ServiceNode in-place
 }
+std::string ServiceNodeList::getLatestNodePubkey() {
+    return nodes.back().getPublicKeyHex();
+}
+
 
 std::string ServiceNodeList::aggregatePubkeyHex() {
     bls::PublicKey aggregate_pubkey; 

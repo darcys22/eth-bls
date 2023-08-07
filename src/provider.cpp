@@ -269,6 +269,32 @@ bool Provider::transactionSuccessful(const std::string& txHash, int64_t timeout)
     return futureTx.get();
 }
 
+uint64_t Provider::gasUsed(const std::string& txHash, int64_t timeout) {
+    std::future<uint64_t> futureTx = std::async(std::launch::async, [&]() -> uint64_t {
+        auto start = std::chrono::steady_clock::now();
+        while(true) {
+            const auto maybe_tx_json = getTransactionReceipt(txHash);
+
+            // If transaction is received, resolve the promise
+            if(maybe_tx_json && !(*maybe_tx_json)["gasUsed"].is_null()) {
+                // Parse the status from the hex string
+                std::string gasUsed = (*maybe_tx_json)["gasUsed"];
+                return utils::fromHexStringToUint64(gasUsed);
+            }
+
+            auto now = std::chrono::steady_clock::now();
+            if(std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeout) {
+                throw std::runtime_error("Transaction inclusion in a block timed out");
+            }
+
+            // Wait for a while before next check
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+    });
+    
+    return futureTx.get();
+}
+
 uint64_t Provider::getBalance(const std::string& address) {
     nlohmann::json params = nlohmann::json::array();
     params.push_back(address);
