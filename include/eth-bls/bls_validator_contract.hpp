@@ -19,6 +19,7 @@ public:
     Transaction checkSigAGG(const std::string& sig, const std::string& message);
     Transaction checkAggPubkey(const std::string& aggPubkey);
     Transaction checkSigAGGIndices(const std::string& sig, const std::string& message, const std::vector<int64_t>& indices);
+    Transaction checkSigAGGNegateIndices(const std::string& sig, const std::string& message, const std::vector<int64_t>& non_signer_indices);
 
 private:
     std::string contractAddress;

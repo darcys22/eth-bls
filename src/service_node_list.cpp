@@ -85,3 +85,15 @@ std::string ServiceNodeList::aggregateSignaturesFromIndices(const std::string& m
     return utils::SignatureToHex(aggSig);
 }
 
+
+std::vector<int64_t> ServiceNodeList::findNonSigners(const std::vector<int64_t>& indices) {
+    std::vector<int64_t> nonSignerIndices = {};
+    for (int64_t i = 0; i < nodes.size(); ++i) {
+        if (std::find(indices.begin(), indices.end(), i) == indices.end()) {
+            nonSignerIndices.push_back(i);
+        }
+    }
+    return nonSignerIndices;
+}
+
+

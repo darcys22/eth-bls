@@ -116,3 +116,36 @@ TEST_CASE( "Signs an aggregate signature from indices and checks its valid", "[b
     hash = signer.sendTransaction(tx, seckey);
     REQUIRE(hash != "");
 }
+
+TEST_CASE( "Signs an aggregate signature from indices and sends the non-signers to the contract", "[bls contract]" ) {
+    ServiceNodeList snl(6);
+    auto tx = bls_contract.clear();
+    auto hash = signer.sendTransaction(tx, seckey);
+    REQUIRE(hash != "");
+    const std::string message = "You are allowed to leave";
+    for(auto& node : snl.nodes) {
+        const auto pubkey = node.getPublicKeyHex();
+        tx = bls_contract.addValidator(pubkey);
+        hash = signer.sendTransaction(tx, seckey);
+        REQUIRE(hash != "");
+    }
+    const std::vector<int64_t> indices = {0,1,3,5};
+    auto tx2 = bls_contract.checkSigAGGNegateIndices(snl.aggregateSignaturesFromIndices(message, indices), message, snl.findNonSigners(indices));
+    hash = signer.sendTransaction(tx2, seckey);
+    REQUIRE(hash != "");
+    REQUIRE(provider->transactionSuccessful(hash));
+    // Modify our list to be different and send a bad indices and expect failure
+    const std::vector<int64_t> indices2 = {0,1,2,3,5};
+    auto tx3 = bls_contract.checkSigAGGNegateIndices(snl.aggregateSignaturesFromIndices(message, indices), message, snl.findNonSigners(indices2));
+    // Local chain will throw directly, otherwise it will get into a blockchain but fail
+    if (config.CHAIN_ID == 1337) {
+        REQUIRE_THROWS(signer.sendTransaction(tx3, seckey));
+    } else {
+        hash = signer.sendTransaction(tx3, seckey);
+        REQUIRE(hash != "");
+        REQUIRE(!provider->transactionSuccessful(hash));
+    }
+    tx = bls_contract.clear();
+    hash = signer.sendTransaction(tx, seckey);
+    REQUIRE(hash != "");
+}

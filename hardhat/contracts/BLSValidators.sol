@@ -28,6 +28,8 @@ contract BLSValidators {
 
     Validator[] public validators;
 
+    G1Point _aggregate_pubkey;
+
     event newValidator(uint256 indexed validatorId);
 
     G1Point _P1;
@@ -46,12 +48,16 @@ contract BLSValidators {
 
     function addValidator(uint256 pkX, uint256 pkY, uint256 amount) public {
          validators.push(Validator(msg.sender, amount, G1Point(pkX, pkY)));
+         if (validators.length == 1) {
+            _aggregate_pubkey = validators[validators.length - 1].pubkey;
+         } else {
+            _aggregate_pubkey = add(_aggregate_pubkey, validators[validators.length - 1].pubkey);
+         }
          emit newValidator(validators.length - 1);
     }
 
     function addValidatorTest(uint256 amount, uint256 _pk,uint256 n) public {
         for(uint256 i = 0 ;i < n; i++) {
-         // Temporary
          G1Point memory pk = mul(P1(), _pk+i);
          validators.push(Validator(msg.sender,amount, pk));
         }
@@ -115,17 +121,25 @@ contract BLSValidators {
 
     /*function checkSigAGGIndices(uint256[4] memory sigs, uint256 message, uint256[] memory indices) public {*/
     function checkSigAGGIndices(uint256 sigs0, uint256 sigs1, uint256 sigs2, uint256 sigs3, uint256 message, uint256[] memory indices) public {
-        console.log("stuff");
         /*G2Point memory signature = G2Point([sigs[1],sigs[0]],[sigs[3],sigs[2]]);*/
         G2Point memory signature = G2Point([sigs1,sigs0],[sigs3,sigs2]);
-        console.log("stuff");
         G1Point memory pubkey;
-        console.log("stuff");
         for(uint256 i = 0; i < indices.length; i++) {
-            console.log("stuff1");
             pubkey = add(pubkey, validators[indices[i]].pubkey);
         }
-        console.log("stuff");
+
+        G2Point memory Hm = hashToG2(message);
+        require(pairing2(P1(), signature, negate(pubkey), Hm), "Invalid BLS Signature");
+    }
+
+    function checkSigAGGNegateIndices(uint256 sigs0, uint256 sigs1, uint256 sigs2, uint256 sigs3, uint256 message, uint256[] memory indices) public {
+        /*G2Point memory signature = G2Point([sigs[1],sigs[0]],[sigs[3],sigs[2]]);*/
+        G2Point memory signature = G2Point([sigs1,sigs0],[sigs3,sigs2]);
+        G1Point memory pubkey;
+        for(uint256 i = 0; i < indices.length; i++) {
+            pubkey = add(pubkey, validators[indices[i]].pubkey);
+        }
+        pubkey = add(_aggregate_pubkey, negate(pubkey));
 
         G2Point memory Hm = hashToG2(message);
         require(pairing2(P1(), signature, negate(pubkey), Hm), "Invalid BLS Signature");
