@@ -1,4 +1,5 @@
 #include "eth-bls/utils.hpp"
+#include <iostream>
 
 extern "C" {
 #include "crypto/keccak.h"
@@ -20,6 +21,8 @@ std::vector<unsigned char> utils::fromHexString(std::string hex_str) {
 
     for (unsigned int i = 0; i < hex_str.length(); i += 2) {
         std::string byteString = hex_str.substr(i, 2);
+        //if (byteString[0] == 0) byteString[0] = '0';
+        //if (byteString[1] == 0) byteString[1] = '0';
         unsigned char byte = static_cast<unsigned char>(strtol(byteString.c_str(), nullptr, 16));
         bytes.push_back(byte);
     }
@@ -91,7 +94,8 @@ std::string utils::padTo32Bytes(const std::string& input, utils::PaddingDirectio
     }
     else if(output.size() < targetSize) {
         size_t paddingSize = targetSize - input.size();
-        std::string padding(paddingSize, 0);
+        //std::string padding(paddingSize, 0);
+        std::string padding(paddingSize, '0');
 
         if(direction == utils::PaddingDirection::LEFT) {
             output = padding + output;

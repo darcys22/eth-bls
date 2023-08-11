@@ -26,6 +26,7 @@ public:
     bls::Signature signHash(const std::array<unsigned char, 32>& hash);
     std::string getPublicKeyHex();
     bls::PublicKey getPublicKey();
+// End Service Node
 };
 
 class ServiceNodeList {
@@ -40,4 +41,7 @@ public:
 
     std::string aggregatePubkeyHex();
     std::string aggregateSignatures(const std::string& message);
+    std::string aggregateSignaturesFromIndices(const std::string& message, const std::vector<int64_t>& indices);
+
+// End Service Node List
 };

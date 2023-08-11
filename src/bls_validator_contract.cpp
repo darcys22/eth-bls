@@ -51,3 +51,20 @@ Transaction BLSValidatorsContract::checkAggPubkey(const std::string& aggPubkey) 
     tx.data = functionSelector + aggPubkey;
     return tx;
 }
+
+Transaction BLSValidatorsContract::checkSigAGGIndices(const std::string& sig, const std::string& message, const std::vector<int64_t>& indices) {
+    Transaction tx(contractAddress, 0, 30000000);
+    //std::string functionSelector = utils::getFunctionSignature("checkSigAGGIndices(uint256[4],uint256,uint256[])");
+    std::string functionSelector = utils::getFunctionSignature("checkSigAGGIndices(uint256,uint256,uint256,uint256,uint256,uint256[])");
+    std::string message_padded = utils::padTo32Bytes(utils::toHexString(utils::HashModulus(message)), utils::PaddingDirection::LEFT);
+    // TODO sean this c0 is a RLP encoding thing, should abstract the "encode a list" to somewhere else
+    std::string indices_padded = utils::padTo32Bytes("c0", utils::PaddingDirection::LEFT);
+    indices_padded += utils::padTo32Bytes(utils::decimalToHex(indices.size()), utils::PaddingDirection::LEFT);
+    for (const auto index: indices) {
+        indices_padded += utils::padTo32Bytes(utils::decimalToHex(static_cast<uint64_t>(index)), utils::PaddingDirection::LEFT);
+    }
+    tx.data = functionSelector + sig + message_padded + indices_padded;
+    
+
+    return tx;
+}

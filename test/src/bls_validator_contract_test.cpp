@@ -94,3 +94,25 @@ TEST_CASE( "Signs an aggregate signature and checks its valid", "[bls contract]"
     hash = signer.sendTransaction(tx, seckey);
     REQUIRE(hash != "");
 }
+
+TEST_CASE( "Signs an aggregate signature from indices and checks its valid", "[bls contract]" ) {
+    ServiceNodeList snl(6);
+    auto tx = bls_contract.clear();
+    auto hash = signer.sendTransaction(tx, seckey);
+    REQUIRE(hash != "");
+    const std::string message = "You are allowed to leave";
+    for(auto& node : snl.nodes) {
+        const auto pubkey = node.getPublicKeyHex();
+        tx = bls_contract.addValidator(pubkey);
+        hash = signer.sendTransaction(tx, seckey);
+        REQUIRE(hash != "");
+    }
+    const std::vector<int64_t> indices = {1,3,5};
+    auto tx2 = bls_contract.checkSigAGGIndices(snl.aggregateSignaturesFromIndices(message, indices), message, indices);
+    hash = signer.sendTransaction(tx2, seckey);
+    REQUIRE(hash != "");
+    REQUIRE(provider->transactionSuccessful(hash));
+    tx = bls_contract.clear();
+    hash = signer.sendTransaction(tx, seckey);
+    REQUIRE(hash != "");
+}

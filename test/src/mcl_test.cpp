@@ -92,7 +92,6 @@ TEST_CASE( "Weierstrass", "[mcl]" ) {
     mcl::bn::Fp x;
     x.setArrayMask(hash.data(), hash.size());
     mcl::bn::Fp2 y = mcl::bn::Fp2(x,0);
-    //std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - hash sent to contract: " << utils::toHexString(serialized_hashx) << " - debug\n";
     mcl::bn::Fp2 z;
     mcl::bn::G2::getWeierstrass(z, y);
     REQUIRE(mcl::bn::Fp2::squareRoot(z, z));
@@ -102,15 +101,7 @@ TEST_CASE( "Weierstrass", "[mcl]" ) {
 
     mcl::bn::G2 Hm;
     bool r;
-    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - X: " << utils::toHexString(x.getStr(mcl::IoSerialize | mcl::IoBigEndian)) << " - debug\n";
     mcl::bn::mapToG2(&r, Hm, mcl::bn::Fp2(x,0));
     REQUIRE(r);
     Hm.normalize();
-    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - HmXX: " << utils::toHexString(Hm.x.a.getStr(mcl::IoSerialize | mcl::IoBigEndian)) << " - debug\n";
-    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - HmXY: " << utils::toHexString(Hm.x.b.getStr(mcl::IoSerialize | mcl::IoBigEndian)) << " - debug\n";
-    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - HmYX: " << utils::toHexString(Hm.y.a.getStr(mcl::IoSerialize | mcl::IoBigEndian)) << " - debug\n";
-    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - HmYY: " << utils::toHexString(Hm.y.b.getStr(mcl::IoSerialize | mcl::IoBigEndian)) << " - debug\n";
-    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - HmZX: " << utils::toHexString(Hm.z.a.getStr(mcl::IoSerialize | mcl::IoBigEndian)) << " - debug\n";
-    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - HmZY: " << utils::toHexString(Hm.z.b.getStr(mcl::IoSerialize | mcl::IoBigEndian)) << " - debug\n";
-
 }

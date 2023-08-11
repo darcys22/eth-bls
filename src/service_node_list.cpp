@@ -75,3 +75,13 @@ std::string ServiceNodeList::aggregateSignatures(const std::string& message) {
     return utils::SignatureToHex(aggSig);
 }
 
+std::string ServiceNodeList::aggregateSignaturesFromIndices(const std::string& message, const std::vector<int64_t>& indices) {
+    const std::array<unsigned char, 32> hash = utils::hash(message); // Get the hash of the input
+    bls::Signature aggSig;
+    aggSig.clear();
+    for(auto& index : indices) {
+        aggSig.add(nodes[index].signHash(hash));
+    }
+    return utils::SignatureToHex(aggSig);
+}
+
