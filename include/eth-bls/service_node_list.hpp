@@ -44,6 +44,7 @@ public:
     std::string aggregateSignaturesFromIndices(const std::string& message, const std::vector<int64_t>& indices);
 
     std::vector<int64_t> findNonSigners(const std::vector<int64_t>& indices);
+    std::vector<int64_t> randomSigners(const size_t numOfRandomIndices);
 
 // End Service Node List
 };

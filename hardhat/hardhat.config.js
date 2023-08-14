@@ -34,6 +34,7 @@ module.exports = {
     },
     hardhat: {
         chainId: 1337,
+        blockGasLimit: 1000000000// when calling pubkeys.delete it actually will go over the 30M gas limit. Only used for tests. Actual functions are lower
     },
   },
 

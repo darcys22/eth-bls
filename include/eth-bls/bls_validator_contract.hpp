@@ -13,7 +13,7 @@ public:
     // Method for creating a transaction to add a public key
     Transaction addValidator(const std::string& publicKey);
 
-    Transaction clear();
+    Transaction clear(uint64_t additional_gas = 0);
     uint64_t getValidatorsLength();
 
     Transaction checkSigAGG(const std::string& sig, const std::string& message);

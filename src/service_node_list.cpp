@@ -2,6 +2,8 @@
 #include "eth-bls/utils.hpp"
 #include "eth-bls/ec_utils.hpp"
 
+#include <random>
+
 ServiceNode::ServiceNode() {
     // This init function generates a secret key calling blsSecretKeySetByCSPRNG
     secretKey.init();
@@ -80,7 +82,7 @@ std::string ServiceNodeList::aggregateSignaturesFromIndices(const std::string& m
     bls::Signature aggSig;
     aggSig.clear();
     for(auto& index : indices) {
-        aggSig.add(nodes[index].signHash(hash));
+        aggSig.add(nodes[static_cast<size_t>(index)].signHash(hash));
     }
     return utils::SignatureToHex(aggSig);
 }
@@ -88,12 +90,30 @@ std::string ServiceNodeList::aggregateSignaturesFromIndices(const std::string& m
 
 std::vector<int64_t> ServiceNodeList::findNonSigners(const std::vector<int64_t>& indices) {
     std::vector<int64_t> nonSignerIndices = {};
-    for (int64_t i = 0; i < nodes.size(); ++i) {
+    for (int64_t i = 0; i < static_cast<int64_t>(nodes.size()); ++i) {
         if (std::find(indices.begin(), indices.end(), i) == indices.end()) {
             nonSignerIndices.push_back(i);
         }
     }
     return nonSignerIndices;
+}
+
+std::vector<int64_t> ServiceNodeList::randomSigners(const size_t numOfRandomIndices) {
+    if (numOfRandomIndices > nodes.size()) {
+        throw std::invalid_argument("The number of random indices to choose is greater than the total number of indices available.");
+    }
+
+    std::vector<int64_t> indices(nodes.size());
+    for (int64_t i = 0; i < static_cast<int64_t>(nodes.size()); ++i) {
+        indices[static_cast<size_t>(i)] = i;
+    }
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(indices.begin(), indices.end(), g);
+
+    indices.resize(numOfRandomIndices);  // Reduce the size of the vector to numOfRandomIndices
+    return indices;
 }
 
 

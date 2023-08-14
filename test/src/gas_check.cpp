@@ -22,24 +22,23 @@ Signer signer(provider);
 std::vector<unsigned char> seckey = utils::fromHexString(std::string(PRIVATE_KEY));
      
 TEST_CASE( "Submits an aggregate signature and prints its gas usage", "[bls contract]" ) {
-    for (size_t count = 100; count < 2000; count=count+200) {
-        ServiceNodeList snl(count);
-        auto tx = bls_contract.clear();
-        auto hash = signer.sendTransaction(tx, seckey);
-        REQUIRE(hash != "");
-        const std::string message = "You are allowed to leave";
-        for(auto& node : snl.nodes) {
-            const auto pubkey = node.getPublicKeyHex();
-            tx = bls_contract.addValidator(pubkey);
-            hash = signer.sendTransaction(tx, seckey);
+    SKIP("Expensive test that only highlights gas costs");
+    for (size_t non_signers_count = 0; non_signers_count < 5; non_signers_count++) {
+        std::cout << "Number of Non Signers: " << non_signers_count << "\n";
+        for (size_t count = non_signers_count + 200; count < 501 + non_signers_count; count=count+200) {
+            ServiceNodeList snl(count);
+            auto tx = bls_contract.clear();
+            auto hash = signer.sendTransaction(tx, seckey);
             REQUIRE(hash != "");
-        }
-        for (size_t i = count+1; i < 10; i++) {
-            snl.addNode();
-            tx = bls_contract.addValidator(snl.getLatestNodePubkey());
-            hash = signer.sendTransaction(tx, seckey);
-            REQUIRE(hash != "");
-            tx = bls_contract.checkSigAGG(snl.aggregateSignatures(message), message);
+            const std::string message = "You are allowed to leave";
+            for(auto& node : snl.nodes) {
+                const auto pubkey = node.getPublicKeyHex();
+                tx = bls_contract.addValidator(pubkey);
+                hash = signer.sendTransaction(tx, seckey);
+                REQUIRE(hash != "");
+            }
+            const auto indices = snl.randomSigners(snl.nodes.size() - non_signers_count);
+            tx = bls_contract.checkSigAGGNegateIndices(snl.aggregateSignaturesFromIndices(message, indices), message, snl.findNonSigners(indices));
             hash = signer.sendTransaction(tx, seckey);
             REQUIRE(hash != "");
             REQUIRE(provider->transactionSuccessful(hash));
@@ -48,5 +47,29 @@ TEST_CASE( "Submits an aggregate signature and prints its gas usage", "[bls cont
     }
     auto tx = bls_contract.clear();
     auto hash = signer.sendTransaction(tx, seckey);
+    REQUIRE(hash != "");
+}
+
+TEST_CASE( "Submits an aggregate signature and makes sure its below block gas limit", "[bls contract]" ) {
+    ServiceNodeList snl(1800);
+    // this adds gas over the block limit, need hardhat to allow for this additinal gas in hardhat config
+    auto tx = bls_contract.clear(20000000);
+    auto hash = signer.sendTransaction(tx, seckey);
+    REQUIRE(hash != "");
+    const std::string message = "You are allowed to leave";
+    for(auto& node : snl.nodes) {
+        const auto pubkey = node.getPublicKeyHex();
+        tx = bls_contract.addValidator(pubkey);
+        hash = signer.sendTransaction(tx, seckey);
+        REQUIRE(hash != "");
+    }
+    const auto indices = snl.randomSigners(snl.nodes.size() - 300);
+    tx = bls_contract.checkSigAGGNegateIndices(snl.aggregateSignaturesFromIndices(message, indices), message, snl.findNonSigners(indices));
+    hash = signer.sendTransaction(tx, seckey);
+    REQUIRE(hash != "");
+    REQUIRE(provider->transactionSuccessful(hash));
+    REQUIRE(provider->gasUsed(hash) < 30000000);
+    tx = bls_contract.clear(20000000);
+    hash = signer.sendTransaction(tx, seckey);
     REQUIRE(hash != "");
 }

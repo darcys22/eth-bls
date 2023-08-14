@@ -23,8 +23,8 @@ Transaction BLSValidatorsContract::addValidator(const std::string& publicKey) {
     return tx;
 }
 
-Transaction BLSValidatorsContract::clear() {
-    Transaction tx(contractAddress, 0, 10000000);
+Transaction BLSValidatorsContract::clear(uint64_t additional_gas) {
+    Transaction tx(contractAddress, 0, 30000000 + additional_gas);
     tx.data = utils::getFunctionSignature("clearValidators()");
     return tx;
 }
