@@ -10,7 +10,7 @@ pragma solidity ^0.8.18;
 library BN256G2 {
     uint256 internal constant CURVE_ORDER_FACTOR = 4965661367192848881; // this is also knows as z, generates prime definine base field (FIELD MODULUS) and order of the curve for BN curves
     uint256 internal constant FIELD_MODULUS = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47;
-    uint256 constant HALF_FIELD_MODULUS = FIELD_MODULUS / 2;
+    uint256 constant HALF_FIELD_MODULUS = (FIELD_MODULUS + 1) / 2;
     uint256 internal constant TWISTBX = 0x2b149d40ceb8aaae81be18991be06ac3b5b4c5e559dbefa33267e6dc24a138e5;
     uint256 internal constant TWISTBY = 0x9713b03af0fed4cd2cafadeed8fdf4a74fa084e52d1852e4a2bd0685c315d2;
     uint internal constant PTXX = 0;
@@ -471,7 +471,7 @@ library BN256G2 {
     }
 
 
-    function _sqrt(uint256 xx) internal view returns (uint256 x, bool hasRoot) {
+    function _sqrt(uint256 xx) public view returns (uint256 x, bool hasRoot) {
         bool callSuccess;
         // solium-disable-next-line security/no-inline-assembly
         assembly {
@@ -501,7 +501,10 @@ library BN256G2 {
             x := mload(freemem)
             hasRoot := eq(xx, mulmod(x, x, FIELD_MODULUS))
         }
-        require(callSuccess, "BLS: sqrt modexp call failed");
+        if (!callSuccess) {
+            x = 0;
+            hasRoot = false;
+        }
     }
 
     function FQ2Sqrt(
@@ -528,14 +531,13 @@ library BN256G2 {
             }
         }
 
-
         // Fp::sqr(t1, x.a); Fp::sqr(t2, x.b);
         t1 = mulmod(x1, x1, FIELD_MODULUS);
         t2 = mulmod(x2, x2, FIELD_MODULUS);
 
         // t1 += t2; // c^2 + d^2
         t1 = addmod(t1, t2, FIELD_MODULUS);
-        
+
         // if (!Fp::squareRoot(t1, t1)) return false;
         (t1, has_root) = _sqrt(t1);
         if (!has_root) return (0, 0);  // indicate failed sqrt
@@ -550,10 +552,10 @@ library BN256G2 {
         if (!has_root) {
             // Fp::sub(t2, x.a, t1); Fp::divBy2(t2, t2);
             t2 = submod(x1, t1, FIELD_MODULUS);
-            t2 = t2 / 2;
+            t2 = divBy2(t2);
             
             (sqrt_t2, has_root) = _sqrt(t2);
-            assert(has_root);  // assert(b);
+            if (!has_root) return (0, 0);  // indicate failed sqrt
         }
 
         // y.a = t2;
@@ -594,7 +596,7 @@ library BN256G2 {
 
     function _ECTwistMulByCofactorJacobian(
         uint256[6] memory P
-    ) public view returns (
+    ) public pure returns (
         uint256[6] memory Q
     ) {
         uint256[6] memory T0;
@@ -631,7 +633,7 @@ library BN256G2 {
         return _ECTwistAddJacobian(T0[PTXX], T0[PTXY], T0[PTYX], T0[PTYY], T0[PTZX], T0[PTZY], T2[PTXX], T2[PTXY], T2[PTYX], T2[PTYY], T2[PTZX], T2[PTZY]);
     }
 
-    function _ECTwistFrobeniusJacobian(uint256[6] memory pt1) public view returns (uint256[6] memory pt2) {
+    function _ECTwistFrobeniusJacobian(uint256[6] memory pt1) public pure returns (uint256[6] memory pt2) {
         // Apply Frobenius map to each component
         (pt2[PTXX], pt2[PTXY]) = _FQ2Frobenius(pt1[PTXX], pt1[PTXY]);
         (pt2[PTYX], pt2[PTYY]) = _FQ2Frobenius(pt1[PTYX], pt1[PTYY]);

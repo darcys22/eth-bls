@@ -20,6 +20,8 @@ public:
     Transaction checkAggPubkey(const std::string& aggPubkey);
     Transaction checkSigAGGIndices(const std::string& sig, const std::string& message, const std::vector<int64_t>& indices);
     Transaction checkSigAGGNegateIndices(const std::string& sig, const std::string& message, const std::vector<int64_t>& non_signer_indices);
+    Transaction validateProofOfPossession(const std::string& publicKey, const std::string& sig);
+    std::string calcField(const std::string& publicKey);
 
 private:
     std::string contractAddress;

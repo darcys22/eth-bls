@@ -54,3 +54,7 @@ TEST_CASE( "Weierstrass", "[mcl]" ) {
     REQUIRE(r);
     Hm.normalize();
 }
+
+TEST_CASE( "hash modulus", "[mcl]" ) {
+    const auto x = utils::toHexString(utils::HashModulus("Hello"));
+}

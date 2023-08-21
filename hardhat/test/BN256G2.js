@@ -73,5 +73,13 @@ describe("BLS", function () {
             expect(Q[3]).to.equal("0x2e60a76508314426a71c3b67a549317beaaebfcc575143c5238733743a11a1c3")
         });
     });
+
+    describe("sqrt Functions", function () {
+        it("sqrt should return root", async function () {
+            const { library, owner } = await loadFixture(deployFixture);
+            const [rt, has_root] = await library._sqrt("16664866163301480451889907439185309398209184354335903843015254030884734189504");
+            expect(has_root).to.equal(true);
+        });
+    });
 // End        
 });

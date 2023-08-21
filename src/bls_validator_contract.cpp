@@ -64,7 +64,6 @@ Transaction BLSValidatorsContract::checkSigAGGIndices(const std::string& sig, co
         indices_padded += utils::padTo32Bytes(utils::decimalToHex(static_cast<uint64_t>(index)), utils::PaddingDirection::LEFT);
     }
     tx.data = functionSelector + sig + message_padded + indices_padded;
-    
 
     return tx;
 }
@@ -80,7 +79,21 @@ Transaction BLSValidatorsContract::checkSigAGGNegateIndices(const std::string& s
         indices_padded += utils::padTo32Bytes(utils::decimalToHex(static_cast<uint64_t>(index)), utils::PaddingDirection::LEFT);
     }
     tx.data = functionSelector + sig + message_padded + indices_padded;
-    
 
     return tx;
+}
+
+Transaction BLSValidatorsContract::validateProofOfPossession(const std::string& publicKey, const std::string& sig) {
+    Transaction tx(contractAddress, 0, 1500000);
+    std::string functionSelector = utils::getFunctionSignature("validateProofOfPossession(uint256,uint256,uint256,uint256,uint256,uint256)");
+    tx.data = functionSelector + publicKey + sig;
+    return tx;
+}
+
+std::string BLSValidatorsContract::calcField(const std::string& publicKey) {
+    ReadCallData callData;
+    callData.contractAddress = contractAddress;
+    std::string functionSelector = utils::getFunctionSignature("calcField(uint256,uint256)");
+    callData.data = functionSelector + publicKey;
+    return provider->callReadFunction(callData);
 }

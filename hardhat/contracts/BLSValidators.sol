@@ -5,9 +5,10 @@ import { BN256G2 } from "./BN256G2.sol";
 
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import "hardhat/console.sol";
-
 contract BLSValidators {
+
+    // The prime q in the base field F_q for G1
+    uint256 internal constant FIELD_MODULUS = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
     struct G1Point {
         uint X;
@@ -63,6 +64,51 @@ contract BLSValidators {
         }
     }
 
+    function validateProofOfPossession(uint256 pkX, uint256 pkY, uint256 sigs0, uint256 sigs1, uint256 sigs2, uint256 sigs3) public {
+        // TODO sean does this need to be a different hash function then the regular signatures?
+        G1Point memory pubkey = G1Point(pkX, pkY);
+        G2Point memory Hm = hashToG2(hashToField(string(abi.encodePacked(pkX, pkY))));
+        G2Point memory signature = G2Point([sigs1,sigs0],[sigs3,sigs2]);
+        require(pairing2(P1(), signature, negate(pubkey), Hm), "Invalid Proof of Possession");
+    }
+
+    function convertArrayAsLE(bytes32 src) public pure returns (bytes32) {
+        bytes32 dst;
+        for (uint256 i = 0; i < 32; i++) {
+            // Considering each byte of bytes32
+            bytes1 s = src[i];
+            // Assuming the role of D is just to cast or store our byte in this context
+            dst |= bytes32(s) >> (i * 8);
+        }
+        return dst;
+    }
+
+    // This matches mcl maskN, this only takes the 254 bits for the field, if it is still greater than the field then take the 253 bits
+    function maskBits(uint256 input) public pure returns (uint256) {
+        uint256 mask = ~uint256(0) - 0xC0;
+        if (byteSwap(input & mask) >= FIELD_MODULUS) {
+            mask = ~uint256(0) - 0xE0;
+        }
+        return input & mask;
+    }
+
+    function byteSwap(uint256 value) public pure returns (uint256) {
+        uint256 swapped = 0;
+        for (uint256 i = 0; i < 32; i++) {
+            uint256 byteValue = (value >> (i * 8)) & 0xFF; 
+            swapped |= byteValue << (256 - 8 - (i * 8));
+        }
+        return swapped;
+    }
+
+    function calcField(uint256 pkX, uint256 pkY) public pure returns (uint256) {
+        return hashToField(string(abi.encodePacked(pkX, pkY)));
+    }
+
+    function hashToField(string memory message) public pure returns (uint256) {
+        return byteSwap(maskBits(uint256(convertArrayAsLE(keccak256(bytes(message))))));
+    }
+
     function getValidatorsLength() public view returns (uint) {
         return validators.length;
     }
@@ -96,6 +142,22 @@ contract BLSValidators {
         return string(abi.encodePacked("0x", result));
     }
 
+
+    function bytesToHexString(bytes memory value) public pure returns (string memory) {
+        // Create a lookup table
+        bytes16 lookup = "0123456789abcdef";
+        
+        // Initialize an array based on the length of input
+        bytes memory result = new bytes(2 * value.length);  
+        for (uint i = 0; i < value.length; i++) {
+            result[i*2] = lookup[uint8(value[i]) / 16];
+            result[1 + i*2] = lookup[uint8(value[i]) % 16];
+        }
+
+        // Prefix with 0x
+        return string(abi.encodePacked("0x", result));
+    }
+
     function checkSigAGG(uint256 sigs0, uint256 sigs1, uint256 sigs2, uint256 sigs3, uint256 message) public {
         G1Point memory pubkey;
         for(uint256 i = 0; i < validators.length; i++) {
@@ -105,8 +167,7 @@ contract BLSValidators {
 
         G2Point memory Hm = hashToG2(message);
         G2Point memory signature = G2Point([sigs1,sigs0],[sigs3,sigs2]);
-        /*require(pairing2(P1(), Hm, negate(pubkey), signature), "Something went wrong");*/
-        require(pairing2(P1(), signature, negate(pubkey), Hm), "Something went wrong"); //SD implementation
+        require(pairing2(P1(), signature, negate(pubkey), Hm), "Invalid BLS Signature");
     }
 
     function checkAggPubkey(uint256 pkX, uint256 pkY) public {
@@ -218,12 +279,15 @@ contract BLSValidators {
             // Calculate square root
             (uint256 sqrt_x, uint256 sqrt_y) = BN256G2.FQ2Sqrt(yx, yy);
 
+
             // Check if this is a point
             if (sqrt_x != 0 && sqrt_y != 0) {
                 y1 = sqrt_x;
                 y2 = sqrt_y;
                 if (BN256G2.IsOnCurve(x1, x2, y1, y2)) {
                     foundValidPoint = true;
+                } else {
+                    x1 += 1;
                 }
             } else {
                 // Increment x coordinate and try again.
@@ -262,11 +326,9 @@ contract BLSValidators {
 
     /// @return r the negation of p, i.e. p.add(p.negate()) should be zero.
     function negate(G1Point memory p) internal pure returns (G1Point memory r) {
-        // The prime q in the base field F_q for G1
-        uint q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
         if (p.X == 0 && p.Y == 0)
             return G1Point(0, 0);
-        return G1Point(p.X, q - (p.Y % q));
+        return G1Point(p.X, FIELD_MODULUS - (p.Y % FIELD_MODULUS));
     }
 
     /// @return r the sum of two points of G1

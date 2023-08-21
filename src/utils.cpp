@@ -1,5 +1,9 @@
 #include "eth-bls/utils.hpp"
 #include <iostream>
+#include <iostream>
+#include <string>
+#include <cstdlib>
+#include <ctime>
 
 extern "C" {
 #include "crypto/keccak.h"
@@ -139,4 +143,18 @@ std::vector<unsigned char> utils::removeLeadingZeros(std::vector<unsigned char> 
     }
     vec.erase(vec.begin(), it);
     return vec;
+}
+
+std::string utils::generateRandomString(size_t length) {
+    srand(static_cast<unsigned int>(time(nullptr))); // Seed the random number generator
+    const char charset[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    const int64_t max_index = sizeof(charset) - 1;
+
+    std::string randomString;
+
+    for (size_t i = 0; i < length; ++i) {
+        randomString += charset[static_cast<uint64_t>(rand() % max_index)];
+    }
+
+    return randomString;
 }

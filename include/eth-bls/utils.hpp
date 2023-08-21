@@ -49,5 +49,7 @@ namespace utils
 
     std::vector<unsigned char> removeLeadingZeros(std::vector<unsigned char> vec);
 
+    std::string generateRandomString(size_t length);
+
 // END
 }

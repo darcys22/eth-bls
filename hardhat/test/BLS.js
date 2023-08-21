@@ -86,6 +86,15 @@ describe("BLS", function () {
             expect(y[0]).to.equal("0x09dc620697a7c0f846d0faf33039943c354cc1864d40b4dda7729c957695a5d9")
 
         });
+        it("yet another mapped point should be correct", async function () {
+            const { validators, owner } = await loadFixture(deployFixture);
+            const [x, y] = await validators.mapToG2("0x15bd3ce911dc2977dc7bd2be78bf7a3c076f6d4870752ae6ca8ee08c32eb6028");
+            expect(x[1]).to.equal("0x15bd3ce911dc2977dc7bd2be78bf7a3c076f6d4870752ae6ca8ee08c32eb602b")
+            expect(x[0]).to.equal("0x000000000000000000000000000000000000000000000000000000000000000")
+            expect(y[1]).to.equal("0x1ccfbab47118bd8920571f0c2c252f9313a832ee87852d6b3bc4c9e80140ae1")
+            expect(y[0]).to.equal("0x11d819688fc0d759a1ef9394195c564b361c5a4a3a66c436c6991907aab8c6f")
+
+        });
         it("should be able to hash to a point", async function () {
             const { validators, owner } = await loadFixture(deployFixture);
             await expect(validators.hashToG2("0x2a1e00efd15f90ee1e701f07eefc54ebe4ea96adb82c3112ae21140d3c529a38")).to.not.be.reverted;
@@ -145,6 +154,25 @@ describe("BLS", function () {
             const [rootx, rooty] = await validators.rootFp2(yyx, yyy);
             expect(rootx).to.equal("0x025545ea777066d1ab51277be1f1a545dc613876c91f6c499b9fccc01c2f526d")
             expect(rooty).to.equal("0x24ecc35294ecac042dc5cab3c6a06668361183a6d7535ca788a7f7365e8aba65")
+        });
+    });
+
+    describe("Hash to Modulus", function () {
+        it("should be able to mask bits", async function () {
+            const { validators, owner } = await loadFixture(deployFixture);
+            await expect(await validators.maskBits("0x06b3dfaec148fb1bb2b066f10ec285e7c9bf402ab32aa78a5d38e34566810cd2")).to.equal("0x06b3dfaec148fb1bb2b066f10ec285e7c9bf402ab32aa78a5d38e34566810c12");
+        });
+        it("should be able to mask bits with modulus", async function () {
+            const { validators, owner } = await loadFixture(deployFixture);
+            await expect(await validators.maskBits("0x594bdadfed01a197b7fec21d5164d80b03510415d678e5a0791257ade8ba7433")).to.equal("0x594bdadfed01a197b7fec21d5164d80b03510415d678e5a0791257ade8ba7413");
+        });
+        it("should be able to reverse bytes", async function () {
+            const { validators, owner } = await loadFixture(deployFixture);
+            await expect(await validators.byteSwap("0x06b3dfaec148fb1bb2b066f10ec285e7c9bf402ab32aa78a5d38e34566810c12")).to.equal("0x120c816645e3385d8aa72ab32a40bfc9e785c20ef166b0b21bfb48c1aedfb306");
+        });
+        it("should be able to hash modulus", async function () {
+            const { validators, owner } = await loadFixture(deployFixture);
+            await expect(await validators.hashToField("Hello")).to.equal("0x120c816645e3385d8aa72ab32a40bfc9e785c20ef166b0b21bfb48c1aedfb306");
         });
     });
 // End        

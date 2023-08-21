@@ -39,12 +39,12 @@ std::string utils::PublicKeyToHex(bls::PublicKey publicKey) {
 std::array<unsigned char, 32> utils::HashModulus(std::string message) {
     std::array<unsigned char, 32> hash = utils::hash(message);
     mcl::bn::Fp x;
+    x.clear();
     x.setArrayMask(hash.data(), hash.size());
-    mcl::bn::Fp2 y = mcl::bn::Fp2(x,0);
     std::array<unsigned char, 32> serialized_hash;
     uint8_t *hdst = serialized_hash.data();
     mclSize serializedSignatureSize = 32;
-    if (y.a.serialize(hdst, serializedSignatureSize, mcl::IoSerialize | mcl::IoBigEndian) == 0)
-        throw std::runtime_error("size of y.a is zero");
+    if (x.serialize(hdst, serializedSignatureSize, mcl::IoSerialize | mcl::IoBigEndian) == 0)
+        throw std::runtime_error("size of x is zero");
     return serialized_hash;
 }

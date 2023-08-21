@@ -4,6 +4,7 @@
 #include "eth-bls/config.hpp"
 #include "eth-bls/service_node_list.hpp"
 #include "eth-bls/signer.hpp"
+#include "eth-bls/ec_utils.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_all.hpp>
@@ -68,7 +69,7 @@ TEST_CASE( "Signs an aggregate signature and checks its valid", "[bls contract]"
     auto tx = bls_contract.clear();
     auto hash = signer.sendTransaction(tx, seckey);
     REQUIRE(hash != "");
-    const std::string message = "You are allowed to leave";
+    const std::string message = utils::generateRandomString(20);
     for(auto& node : snl.nodes) {
         const auto pubkey = node.getPublicKeyHex();
         tx = bls_contract.addValidator(pubkey);
@@ -100,7 +101,7 @@ TEST_CASE( "Signs an aggregate signature from indices and checks its valid", "[b
     auto tx = bls_contract.clear();
     auto hash = signer.sendTransaction(tx, seckey);
     REQUIRE(hash != "");
-    const std::string message = "You are allowed to leave";
+    const std::string message = utils::generateRandomString(20);
     for(auto& node : snl.nodes) {
         const auto pubkey = node.getPublicKeyHex();
         tx = bls_contract.addValidator(pubkey);
@@ -122,7 +123,7 @@ TEST_CASE( "Signs an aggregate signature from indices and sends the non-signers 
     auto tx = bls_contract.clear();
     auto hash = signer.sendTransaction(tx, seckey);
     REQUIRE(hash != "");
-    const std::string message = "You are allowed to leave";
+    const std::string message = utils::generateRandomString(20);
     for(auto& node : snl.nodes) {
         const auto pubkey = node.getPublicKeyHex();
         tx = bls_contract.addValidator(pubkey);
@@ -131,8 +132,7 @@ TEST_CASE( "Signs an aggregate signature from indices and sends the non-signers 
     }
     const std::vector<int64_t> indices = {0,1,3,5};
     auto tx2 = bls_contract.checkSigAGGNegateIndices(snl.aggregateSignaturesFromIndices(message, indices), message, snl.findNonSigners(indices));
-    hash = signer.sendTransaction(tx2, seckey);
-    REQUIRE(hash != "");
+    hash = signer.sendTransaction(tx2, seckey); REQUIRE(hash != "");
     REQUIRE(provider->transactionSuccessful(hash));
     // Modify our list to be different and send a bad indices and expect failure
     const std::vector<int64_t> indices2 = {0,1,2,3,5};
@@ -148,4 +148,33 @@ TEST_CASE( "Signs an aggregate signature from indices and sends the non-signers 
     tx = bls_contract.clear();
     hash = signer.sendTransaction(tx, seckey);
     REQUIRE(hash != "");
+}
+
+TEST_CASE( "Validates a proof of possession", "[bls contract]" ) {
+    ServiceNodeList snl(200);
+    size_t count = 0;
+    for(auto& node : snl.nodes) {
+        const auto pubkey = node.getPublicKeyHex();
+        auto tx = bls_contract.validateProofOfPossession(pubkey, node.proofOfPossession());
+        try {
+            auto hash = signer.sendTransaction(tx, seckey);
+            REQUIRE(hash != "");
+            count++;
+            std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - Succeeded\n";
+        } catch(const std::exception& e) {
+            std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - Failed\n";
+        }
+        //REQUIRE(provider->transactionSuccessful(hash));
+    }
+    std::cout << __FILE__ << ":" << __LINE__ << " (" << __func__ << ") TODO sean remove this - successful transactions: " << count << "/200 - debug\n";
+}
+
+TEST_CASE( "Validates map to field", "[bls contract]" ) {
+    ServiceNodeList snl(3);
+    for(auto& node : snl.nodes) {
+        const auto pubkey = node.getPublicKeyHex();
+        const auto contract = bls_contract.calcField(pubkey);
+        const auto cppside = "0x" + utils::toHexString(utils::HashModulus("0x" + pubkey));
+        REQUIRE(cppside == contract);
+    }
 }

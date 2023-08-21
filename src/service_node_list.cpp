@@ -18,6 +18,13 @@ bls::Signature ServiceNode::signHash(const std::array<unsigned char, 32>& hash) 
     return sig;
 }
 
+std::string ServiceNode::proofOfPossession() {
+    const std::array<unsigned char, 32> hash = utils::hash("0x" + getPublicKeyHex()); // Get the hash of the publickey
+    bls::Signature sig;
+    secretKey.signHash(sig, hash.data(), hash.size());
+    return utils::SignatureToHex(sig);
+}
+
 
 std::string ServiceNode::getPublicKeyHex() {
     bls::PublicKey publicKey;
