@@ -5,6 +5,8 @@ import { BN256G2 } from "./BN256G2.sol";
 
 import "@openzeppelin/contracts/utils/Strings.sol";
 
+import "hardhat/console.sol";
+
 contract BLSValidators {
 
     // The prime q in the base field F_q for G1

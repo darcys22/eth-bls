@@ -7,6 +7,7 @@ set(sources
     src/transaction.cpp
     src/service_node_list.cpp
     src/bls_validator_contract.cpp
+    src/merkle_tree_creator.cpp
 )
 
 set(exe_sources
@@ -24,6 +25,7 @@ set(headers
     include/eth-bls/transaction.hpp
     include/eth-bls/service_node_list.hpp
     include/eth-bls/bls_validator_contract.hpp
+    include/eth-bls/merkle_tree_creator.hpp
     include/eth-bls/ecdsa_util.h
 )
 
@@ -37,4 +39,5 @@ set(test_sources
   src/bls_validator_contract_test.cpp
   src/verify.cpp
   src/gas_check.cpp
+  src/merkle.cpp
 )

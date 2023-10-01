@@ -2,7 +2,6 @@
 #include "eth-bls/utils.hpp"
 #include "eth-bls/ec_utils.hpp"
 
-
 #include <iostream>
 
 BLSValidatorsContract::BLSValidatorsContract(const std::string& _contractAddress, std::shared_ptr<Provider> _provider)
