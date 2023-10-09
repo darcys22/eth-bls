@@ -26,6 +26,8 @@ public:
     Transaction validateProof(size_t index, int64_t amount);
 
     std::string abiEncode(const std::string& address, uint64_t balance);
+    std::string contractHash(const std::string& address, uint64_t balance);
+    std::string contractABIEncode(const std::string& address, uint64_t balance);
 
     static inline void cncryptoCompressKeccak256(
         const merkle::HashT<32>& l,

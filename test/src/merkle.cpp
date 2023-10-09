@@ -39,7 +39,6 @@ std::vector<merkle::Hash> make_hashes(size_t n)
 }
 
 TEST_CASE( "verify merkle in cpp", "[merkle]" ) {
-    SKIP("not focus");
     merkle::Tree::Hash hash("fa8f44eabb728d4020e7f33d1aa973faaef19de6c06679bccdc5100a3c01f54a");
     merkle::Tree tree;
     tree.insert(hash);
@@ -62,7 +61,6 @@ void merkles() {
 }
 
 TEST_CASE( "verify more merkles in cpp", "[merkle]" ) {
-    SKIP("not focus");
     REQUIRE_NOTHROW(merkles());
 }
 
@@ -94,7 +92,6 @@ void merkles_keccak() {
     }
 }
 TEST_CASE( "verify more merkles using keccak in cpp using actual data", "[merkle]" ) {
-    SKIP("not focus");
     REQUIRE_NOTHROW(merkles_keccak());
 }
 
@@ -122,7 +119,6 @@ void merkles_keccak_with_data() {
     }
 }
 TEST_CASE( "verify more merkles using keccak in cpp", "[merkle]" ) {
-    SKIP("not focus");
     REQUIRE_NOTHROW(merkles_keccak_with_data());
 }
 
@@ -144,11 +140,9 @@ void compare_merkles_keccak_with_data() {
     }
 }
 TEST_CASE( "compare merkles using keccak in cpp", "[merkle]" ) {
-    SKIP("not focus");
     REQUIRE_NOTHROW(compare_merkles_keccak_with_data());
 }
 TEST_CASE("Send Merkle hash to contract") {
-    SKIP("WOrks");
     const size_t num_leaves = 6;
     for (size_t i = 0; i < num_leaves; i++)
     {
@@ -162,7 +156,7 @@ TEST_CASE("Send Merkle hash to contract") {
 }
 
 TEST_CASE("Send Merkle hash to contract and validate Proof") {
-    GENERATE(range(0, 1000)); // This will run the test 1000 times
+    GENERATE(range(0, 1000)); // This will run the test multiple times
     merkle_contract.tree = {};
     std::random_device rd;  
     std::mt19937 gen(rd()); 
@@ -176,14 +170,13 @@ TEST_CASE("Send Merkle hash to contract and validate Proof") {
         merkle_contract.addLeaf(std::to_string(i));
     }
 
-    merkle_contract.addLeaf("1");
-    //std::string our_address = signer.addressFromPrivateKey(seckey);
-    //merkle_contract.addLeaf(merkle_contract.abiEncode(our_address,10000));
+    std::string our_address = signer.addressFromPrivateKey(seckey);
+    merkle_contract.addLeaf(merkle_contract.abiEncode(our_address,10000));
     auto tx = merkle_contract.updateRewardsMerkleRoot();
     auto hash = signer.sendTransaction(tx, seckey);
     REQUIRE(hash != "");
     REQUIRE(provider->transactionSuccessful(hash));
-    size_t id = merkle_contract.findIndex("1");
+    size_t id = merkle_contract.findIndex(merkle_contract.abiEncode(our_address,10000));
     tx = merkle_contract.validateProof(id, 10000);
     hash = signer.sendTransaction(tx, seckey);
     REQUIRE(hash != "");
@@ -192,23 +185,24 @@ TEST_CASE("Send Merkle hash to contract and validate Proof") {
 }
 
 TEST_CASE("Just get a good merkle with lots of nodes") {
-    SKIP("COME BACK TO THIS");
     const size_t num_leaves = 50;
+    merkle_contract.tree = {};
     std::random_device rd;  
     std::mt19937 gen(rd()); 
     std::uniform_int_distribution<> dis(0, 40000);  // adjust range as necessary
 
     size_t start = dis(gen);
     merkle_contract.addLeaf("1");
-    //size_t start = 2;
     for (size_t i = start; i < start + num_leaves; i++)
     {
         merkle_contract.addLeaf(std::to_string(i));
     }
 
-    //std::string our_address = signer.addressFromPrivateKey(seckey);
-    //merkle_contract.addLeaf(merkle_contract.abiEncode(our_address,10000));
-    //
     REQUIRE(merkle_contract.tree.num_leaves() == 51);
     merkle_contract.tree.root();
+}
+
+TEST_CASE("ABI encode") {
+    std::string our_address = signer.addressFromPrivateKey(seckey);
+    REQUIRE(merkle_contract.contractHash(our_address,10000) == "0x" + utils::toHexString(utils::hash(merkle_contract.abiEncode(our_address,10000))));
 }

@@ -27,8 +27,12 @@ contract MerkleRewards is Ownable {
         rewardsMerkleRoot = _merkleRoot;
         resetRewardClaimed();
     }
+    
+    function abiencode(address target, uint256 balance) public pure returns (bytes memory) {
+        return abi.encode(target, balance);
+    }
 
-    function hash(address target, uint balance) public pure returns (bytes32) {
+    function hash(address target, uint256 balance) public pure returns (bytes32) {
         return keccak256(abi.encode(target,balance));
     }
 
@@ -54,8 +58,8 @@ contract MerkleRewards is Ownable {
     }
 
     function validateProof(uint256 _quantity, bytes32[] calldata _merkleProof) external {
-        /*bytes32 leaf = hash(msg.sender, _quantity);*/
-        bytes32 leaf = keccak256("1");
+        bytes32 leaf = hash(msg.sender, _quantity);
+        /*bytes32 leaf = keccak256("1");*/
         console.log(toHexString(uint256(leaf)));
         require(MerkleProof.verify(_merkleProof, rewardsMerkleRoot, leaf), "Must be in rewards list");
     }

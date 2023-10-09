@@ -76,6 +76,7 @@ namespace config {
         inline constexpr std::string_view BLOCK_EXPLORER_URL = "https://arbiscan.io";
         inline constexpr std::string_view OFFICIAL_WEBSITE = "https://portal.arbitrum.one";
         inline constexpr std::string_view BLS_CONTRACT_ADDRESS = "";
+        inline constexpr std::string_view MERKLE_CONTRACT_ADDRESS = "";
     }  // namespace arbitrum
     namespace sepolia {
         inline constexpr std::string_view RPC_URL = "https://rpc.sepolia.org";
@@ -84,6 +85,7 @@ namespace config {
         inline constexpr std::string_view BLOCK_EXPLORER_URL = "https://sepolia.etherscan.io/";
         inline constexpr std::string_view OFFICIAL_WEBSITE = "https://sepolia.dev/";
         inline constexpr std::string_view BLS_CONTRACT_ADDRESS = "0xf85468442B4904cde8D526745369C07CE8F612eA";
+        inline constexpr std::string_view MERKLE_CONTRACT_ADDRESS = "0xf85468442B4904cde8D526745369C07CE8F612eA";
     }  // namespace sepolia 
     namespace ganache {
         inline constexpr std::string_view RPC_URL = "127.0.0.1:8545";
@@ -91,6 +93,7 @@ namespace config {
         inline constexpr std::string_view BLOCK_EXPLORER_URL = "";
         inline constexpr std::string_view OFFICIAL_WEBSITE = "";
         inline constexpr std::string_view BLS_CONTRACT_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+        inline constexpr std::string_view MERKLE_CONTRACT_ADDRESS = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
     }  // namespace sepolia 
 }  // namespace config
 
@@ -100,6 +103,7 @@ struct network_config {
     std::string_view BLOCK_EXPLORER_URL;
     std::string_view OFFICIAL_WEBSITE;
     std::string_view BLS_CONTRACT_ADDRESS;
+    std::string_view MERKLE_CONTRACT_ADDRESS;
 };
 
 inline constexpr network_config arbitrum_config{
@@ -108,6 +112,7 @@ inline constexpr network_config arbitrum_config{
         config::arbitrum::BLOCK_EXPLORER_URL,
         config::arbitrum::OFFICIAL_WEBSITE,
         config::arbitrum::BLS_CONTRACT_ADDRESS,
+        config::arbitrum::MERKLE_CONTRACT_ADDRESS,
 };
 
 inline constexpr network_config sepolia_config{
@@ -116,6 +121,7 @@ inline constexpr network_config sepolia_config{
         config::sepolia::BLOCK_EXPLORER_URL,
         config::sepolia::OFFICIAL_WEBSITE,
         config::sepolia::BLS_CONTRACT_ADDRESS,
+        config::sepolia::MERKLE_CONTRACT_ADDRESS,
 };
 
 inline constexpr network_config ganache_config{
@@ -124,6 +130,7 @@ inline constexpr network_config ganache_config{
         config::ganache::BLOCK_EXPLORER_URL,
         config::ganache::OFFICIAL_WEBSITE,
         config::ganache::BLS_CONTRACT_ADDRESS,
+        config::ganache::MERKLE_CONTRACT_ADDRESS,
 };
 
 inline constexpr const network_config& get_config(network_type nettype) {

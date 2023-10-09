@@ -22,9 +22,15 @@ void MerkleTreeCreator::addLeaves(const std::map<std::string, uint64_t>& data) {
 
 std::string MerkleTreeCreator::abiEncode(const std::string& address, uint64_t balance) {
     
+    std::string sanitized_address = address;
+    // Check if input starts with "0x" prefix
+    if (sanitized_address.substr(0, 2) == "0x") {
+        sanitized_address = sanitized_address.substr(2);  // remove "0x" prefix for now
+    }
+    std::string sanitized_address_padded = utils::padTo32Bytes(sanitized_address, utils::PaddingDirection::LEFT);
     std::string balance_padded = utils::padTo32Bytes(utils::decimalToHex(balance), utils::PaddingDirection::LEFT);
 
-    return address + balance_padded;
+    return "0x" + sanitized_address_padded + balance_padded;
 }
 
 merkle::Tree::Hash MerkleTreeCreator::createMerkleKeccakHash(const std::string& input) {
@@ -92,4 +98,31 @@ Transaction MerkleTreeCreator::validateProof(size_t index, int64_t amount) {
     tx.data = functionSelector + amount_padded + proof_location_padded + proof_length_padded + getPath(index);
 
     return tx;
+}
+
+std::string MerkleTreeCreator::contractHash(const std::string& address, uint64_t balance) {
+    ReadCallData callData;
+    callData.contractAddress = contractAddress;
+    std::string sanitized_address = address;
+    // Check if input starts with "0x" prefix
+    if (sanitized_address.substr(0, 2) == "0x") {
+        sanitized_address = sanitized_address.substr(2);  // remove "0x" prefix for now
+    }
+    std::string amount_padded = utils::padTo32Bytes(utils::decimalToHex(balance), utils::PaddingDirection::LEFT);
+    callData.data = utils::getFunctionSignature("hash(address,uint256)") + utils::padTo32Bytes(sanitized_address, utils::PaddingDirection::LEFT) + amount_padded;
+    return provider->callReadFunction(callData);
+}
+
+std::string MerkleTreeCreator::contractABIEncode(const std::string& address, uint64_t balance) {
+    ReadCallData callData;
+    callData.contractAddress = contractAddress;
+    std::string sanitized_address = address;
+    // Check if input starts with "0x" prefix
+    if (sanitized_address.substr(0, 2) == "0x") {
+        sanitized_address = sanitized_address.substr(2);  // remove "0x" prefix for now
+    }
+    std::string amount_padded = utils::padTo32Bytes(utils::decimalToHex(balance), utils::PaddingDirection::LEFT);
+    callData.data = utils::getFunctionSignature("abiencode(address,uint256)") + utils::padTo32Bytes(sanitized_address, utils::PaddingDirection::LEFT) + amount_padded;
+
+    return provider->callReadFunction(callData);
 }
